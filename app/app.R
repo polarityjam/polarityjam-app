@@ -86,16 +86,12 @@ ui <- navbarPage(
     sidebarLayout(
       sidebarPanel(
 
-        # radioButtons("data_upload_form", "Data from:", choices = list("example 1", "single file", "folder", "key file"), selected = "example 1"),
         radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"),
         conditionalPanel(
           condition = "input.data_upload_form == 'upload data'",
           checkboxInput("terms_of_use", "I agree to terms of use", FALSE),
         ),
-        #conditionalPanel(
-        #  condition = "input.terms_of_use == true",
-        #  radioButtons("data_upload_source", "Data from:", choices = list("single file", "folder", "key file"), selected = "single file"),
-        #),
+
         conditionalPanel(
           condition = "input.terms_of_use == true",
           fileInput("stackData", "Upload data file",
@@ -109,21 +105,20 @@ ui <- navbarPage(
           checkboxInput("header_correlation", "File upload", TRUE),
         ),
 
-        # the data frame can be sub-sampled by selecting only every n-th row. Th
+        # the data frame can be sub-sampled by selecting only every n-th row. 
         checkboxInput("subsample_data", "Subsample data", FALSE),
         conditionalPanel(
           condition = "input.subsample_data == true",
           numericInput("subsample_n", "Select every n-th row:", value = 1, min = 1, max = 50, step = 1)
         ),
 
+        #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
         selectInput("condition_col", "Identifier of conditions", choices = ""),
         
         selectInput("remove_these_conditions", "Deselect these conditions:", "", multiple = TRUE),
         
-        selectInput("dataset_merged", "Choose a dataset:",
-                    choices = c("merged_file")
-        ),
+
         
         checkboxInput("filter_data", "Filter data", FALSE),
         conditionalPanel(
@@ -133,8 +128,7 @@ ui <- navbarPage(
           numericInput("min_value", "Set minimum value:", value = 0.0)
         ),
         
-        #TODO: needs to be implemented
-        downloadButton("downloadProcessedData", "Download")
+        downloadButton("downloadFilteredData", "Download filtered data")
       ),
 
       # TODO: Add Terms of Use text
@@ -1020,9 +1014,9 @@ server <- function(input, output, session) {
     multi_plot()
   })
 
-  output$downloadProcessedData <- downloadHandler(
+  output$downloadFilteredData <- downloadHandler(
     filename = function() {
-      filename <- "merged_file.csv"
+      filename <- "data_filtered.csv"
       return(filename)
     },
     content = function(file) {
