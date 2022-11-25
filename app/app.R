@@ -141,10 +141,10 @@ ui <- navbarPage(
   ),
 
 
-  ### Panel A: Plot distributions
+  ### Panel A: Plot data
 
   tabPanel(
-    "Plot distributions",
+    "Plot data",
     sidebarLayout(
       sidebarPanel(
         selectInput("feature_select", "Choose a feature:", choices = ""),
@@ -182,33 +182,14 @@ ui <- navbarPage(
         checkboxInput("scatter_plot", "Scatter plot", FALSE),
         checkboxInput("kde_plot", "KDE plot", FALSE),
         checkboxInput("area_scaled", "area scaled histogram", TRUE),
-        # checkboxInput("left_directional", "hemirose on left", FALSE),
 
-        checkboxInput("filter_data", "filter data", FALSE),
-        conditionalPanel(
-          condition = "input.filter_data == true",
-          sliderInput("min_eccentricity",
-            "Mininum eccentricity",
-            min = 0,
-            max = 1,
-            step = 0.1,
-            value = 0.0
-          ),
-          sliderInput("min_nuclei_golgi_dist",
-            "Minimum nuclei golgi distance",
-            min = 0,
-            max = 10,
-            step = 1,
-            value = 0
-          ),
-        ),
         selectInput("plot_mode", "Choose data modality:",
           choices = c("circular", "semicircular", "linear")
         ),
         conditionalPanel(
           condition = "input.plot_mode == 'semicircular'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
-            choices = c("up", "down", "left", "right", "all")
+            choices = c("mirrored", "up", "down", "left", "right")
           )
         ),
         selectInput("select_colormap", "Choose a color scheme",
@@ -224,6 +205,9 @@ ui <- navbarPage(
           numericInput("alpha_fill", "set alpha fill:", value = 0.5, min = 0.0, max = 1.0, step = 0.1),
           selectInput("outline", "choose outline style:", choice = c("color", "white", "black"))
         ),
+        
+        numericInput("text_size", "text size", value = 12, min = 4, max = 50, step = 1),
+        numericInput("marker_size", "marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
         selectInput("dataset", "Choose a dataset:",
@@ -752,41 +736,13 @@ server <- function(input, output, session) {
     source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
-    text_size <- as.integer(parameters["text_size_merged_plot"])
+    text_size <- input$text_size
 
     results_all_df <- data_filtered()
 
-    # inFileStackData <- input$stackData
-
-    # if (!is.null(inFileStackData))
-    #    results_all_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
-
-    # TODO: make filtering conditional
-    # for(i in 1:nrow(results_all_df)) {
-    #  row <- results_all_df[i,]
-    #  a <- row$major_axis_length
-    #  b <- row$minor_axis_length
-    #
-    #  eccentricity <- sqrt(1.0 - b*b/(a*a))
-    #  results_all_df[i,"cell_eccentricity"] = eccentricity
-    # }
-
-    # threshold <- input$min_nuclei_golgi_dist
-    # if ("organelle_distance" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$distance > threshold)
-    # }
-
-    # print("In merged_plot")
-    # print(head(results_all_df))
-
     bin_size <- 360 / input$bins
     exp_condition <- input$exp_condition
-    #datapath <- stack_data_info$datapath
-
     feature <- parameters[input$feature_select][[1]][1]
-
-    print("Feature:")
-    print(feature)
 
     if (parameters[input$feature_select][[1]][2] == "directional") {
       print("directional feature!")
@@ -868,7 +824,7 @@ server <- function(input, output, session) {
     source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
-    text_size <- 12
+    text_size <- input$text_size
 
     #datapath <- stack_data_info$datapath
     #print(datapath)
