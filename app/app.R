@@ -184,10 +184,11 @@ ui <- navbarPage(
         checkboxInput("area_scaled", "area scaled histogram", TRUE),
 
         selectInput("plot_mode", "Choose data modality:",
-          choices = c("circular", "semicircular", "linear")
+          choices = c("directional", "undirectional", "linear"),
+          selected = "directional"
         ),
         conditionalPanel(
-          condition = "input.plot_mode == 'semicircular'",
+          condition = "input.plot_mode == 'undirectional'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
             choices = c("mirrored", "up", "down", "left", "right")
           )
@@ -411,6 +412,11 @@ server <- function(input, output, session) {
     updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity")
     updateSelectInput(session, "filter_column", choices = var_list, selected="none")
 
+    parameters <- fromJSON(file = "parameters/parameters.json")
+    stats_mode <- parameters[input$feature_select][[1]][2]
+    updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
+
+
   })
   
   
@@ -434,6 +440,13 @@ server <- function(input, output, session) {
     }
     
   })
+
+#  observeEvent(input$feature_select != 'none', {
+#    parameters <- fromJSON(file = "parameters/parameters.json")
+#    stats_mode <- parameters[input$feature_select][[1]][2]
+#    updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
+#
+#  })
   
 
   data_upload <- reactive({
