@@ -579,7 +579,9 @@ server <- function(input, output, session) {
     if (parameters[input$feature_select][[1]][2] == "directional") {
 
       for (condition in condition_list) {
-        condition_data <- subset(results_df, results_df[condition_col] == condition)
+        #condition_data <- subset(results_df, results_df[condition_col] == condition)
+        condition_data <- results_df[results_df[condition_col] == condition,]
+
         print("Condition subset: ")
         print(head(condition_data))
 
@@ -637,20 +639,16 @@ server <- function(input, output, session) {
         statistics_df[ind, condition] <- p_value_mu
       }
     } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
-      #statistics <- compute_undirectional_statistics(results_df, feature, parameters)
 
-      #p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
-
-      #statistics_df[1, 1] <- "cells"
-      #statistics_df[1, 2] <- nrow(results_df)
-      #statistics_df[2, 1] <- "mean (degree)"
-      #statistics_df[2, 2] <- signif(statistics[1, "mean"], digits = 3)
-      #statistics_df[3, 1] <- "polarity index"
-      #statistics_df[3, 2] <- signif(statistics[1, "polarity_index"], digits = 3)
-      #statistics_df[4, 1] <- "Rayleigh test, p-value:"
-      #statistics_df[4, 2] <- p_value
       for (condition in condition_list) {
-        condition_data <- subset(results_df, results_df[condition_col] == condition)
+        print("Condition")
+        print(condition)
+        print(condition_col)
+
+        print(head(results_df))
+
+        #condition_data <- subset(results_df, results_df[condition_col] == condition)
+        condition_data <- results_df[results_df[condition_col] == condition,]
         print("Condition subset: ")
         print(head(condition_data))
         
@@ -704,6 +702,9 @@ server <- function(input, output, session) {
       }
       
     } else {
+     
+      condition_data <- results_df[results_df[condition_col] == condition,]
+
       statistics <- compute_linear_statistics(results_df, feature, parameters)
 
       statistics_df[1, 1] <- "cells"
