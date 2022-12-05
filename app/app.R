@@ -412,9 +412,9 @@ server <- function(input, output, session) {
     updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity")
     updateSelectInput(session, "filter_column", choices = var_list, selected="none")
 
-    parameters <- fromJSON(file = "parameters/parameters.json")
-    stats_mode <- parameters[input$feature_select][[1]][2]
-    updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
+    #parameters <- fromJSON(file = "parameters/parameters.json")
+    #stats_mode <- parameters[input$feature_select][[1]][2]
+    #updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
 
 
   })
@@ -441,12 +441,17 @@ server <- function(input, output, session) {
     
   })
 
-#  observeEvent(input$feature_select != 'none', {
-#    parameters <- fromJSON(file = "parameters/parameters.json")
-#    stats_mode <- parameters[input$feature_select][[1]][2]
-#    updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
-#
-#  })
+  observeEvent(input$feature_select != 'none', {
+    parameters <- fromJSON(file = "parameters/parameters.json")
+    if (input$feature_select %in% names(parameters)) {
+
+      stats_mode <- parameters[input$feature_select][[1]][2]
+      updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
+
+    } else {
+      updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = "directional")
+    }
+  })
   
 
   data_upload <- reactive({
@@ -592,8 +597,8 @@ server <- function(input, output, session) {
     print(colnames(statistics_df))
     # print("Feature property")
     # print(parameters[input$feature_select][[1]][2])
-    if (parameters[input$feature_select][[1]][2] == "directional") {
-
+    #if (parameters[input$feature_select][[1]][2] == "directional") {
+    if (input$plot_mode == "directional") {
       for (condition in condition_list) {
         #condition_data <- subset(results_df, results_df[condition_col] == condition)
         condition_data <- results_df[results_df[condition_col] == condition,]
@@ -654,8 +659,8 @@ server <- function(input, output, session) {
         statistics_df[ind, 1] <- "V-test p-value (cond. mean = 180): "
         statistics_df[ind, condition] <- p_value_mu
       }
-    } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
-
+    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+    } else if (input$plot_mode == "undirectional") {
       for (condition in condition_list) {
         print("Condition")
         print(condition)
@@ -772,7 +777,9 @@ server <- function(input, output, session) {
     exp_condition <- input$exp_condition
     feature <- parameters[input$feature_select][[1]][1]
 
-    if (parameters[input$feature_select][[1]][2] == "directional") {
+    #if (parameters[input$feature_select][[1]][2] == "directional") {
+    if (input$plot_mode == "directional") {
+
       print("directional feature!")
 
 
@@ -780,7 +787,9 @@ server <- function(input, output, session) {
       statistics <- compute_circular_statistics(results_all_df, feature, parameters)
       plot_title <- parameters[input$feature_select][[1]][3]
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
-    } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+    } else if (input$plot_mode == "undirectional") {
+
       x_data <- results_all_df[feature]
       statistics <- compute_undirectional_statistics(results_all_df, feature, parameters)
       # if (input$left_directional) {
