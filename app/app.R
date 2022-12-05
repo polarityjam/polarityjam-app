@@ -210,12 +210,12 @@ ui <- navbarPage(
         numericInput("marker_size", "marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
-        selectInput("dataset", "Choose a dataset:",
-          choices = c("statistics_file", "merged_plot_file", "multi_plot_file")
-        ),
+        #selectInput("dataset", "Choose a dataset:",
+        #  choices = c("statistics_file", "merged_plot_file", "multi_plot_file")
+        #),
         # selectInput("image_file_format", "Choose image file format:",
         #            choices = c(".pdf",".eps",".png")),
-        downloadButton("downloadData", "Download")
+        downloadButton("downloadData", "Download statistics")
       ),
 
       # Show a plot of the generated distribution
@@ -446,18 +446,21 @@ server <- function(input, output, session) {
     inFileStackData <- input$stackData
 
     if (input$data_upload_form == "example 1") {
-      
+
       results_all_df <- read.csv("example_1/example_1.csv", header = TRUE)
-    
-    } else if (!is.null(inFileStackData)) {
-    
+
+    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data")) {
+
       results_all_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
-    
+
     } else {
-      results_all_df <- data.frame()
-      # datapath = "../test_data/stack_EC_microscopy/120821 BSA #01.csv"
-      # results_all_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
+
+        results_all_df <- data.frame()
+
     }
+
+
+
 
     if (input$subsample_data) {
       N <- nrow(results_all_df) %/% input$subsample_n
@@ -563,11 +566,11 @@ server <- function(input, output, session) {
     #    }
 
     statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = 0))
-    cols <- c("entity")
+    cols <- c("statistical measure")
     for (condition in condition_list) {
       cols <- c(cols, condition)
     }
-    cols <- c(cols, "description")
+    #cols <- c(cols, "description")
 
 
     colnames(statistics_df) <- cols # c("entity", "value") #, "comment")
@@ -643,9 +646,9 @@ server <- function(input, output, session) {
       for (condition in condition_list) {
         print("Condition")
         print(condition)
-        print(condition_col)
+        #print(condition_col)
 
-        print(head(results_df))
+        #print(head(results_df))
 
         #condition_data <- subset(results_df, results_df[condition_col] == condition)
         condition_data <- results_df[results_df[condition_col] == condition,]
@@ -658,8 +661,6 @@ server <- function(input, output, session) {
         print(statistics)
         
         p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
-        # if (statistics[1,"rayleigh_test"] < 0.001)
-        #    p_value <- "p < 0.001"
 
         ind <- 1
         statistics_df[ind, 1] <- "number of cells"
@@ -702,19 +703,32 @@ server <- function(input, output, session) {
       }
       
     } else {
-     
-      condition_data <- results_df[results_df[condition_col] == condition,]
 
-      statistics <- compute_linear_statistics(results_df, feature, parameters)
+      for (condition in condition_list) {
+        condition_data <- results_df[results_df[condition_col] == condition,]
 
-      statistics_df[1, 1] <- "cells"
-      statistics_df[1, 2] <- nrow(results_df)
-      statistics_df[2, 1] <- "mean"
-      statistics_df[2, 2] <- signif(statistics[1, "mean"], digits = 3)
-      statistics_df[3, 1] <- "standard deviation"
-      statistics_df[3, 2] <- signif(statistics[1, "std"], digits = 3)
-      statistics_df[4, 1] <- "median"
-      statistics_df[4, 2] <- signif(statistics[1, "median"], digits = 3)
+        statistics <- compute_linear_statistics(results_df, feature, parameters)
+
+        ind <- 1
+        statistics_df[ind, 1] <- "cells"
+        statistics_df[ind, condition] <- nrow(results_df)
+        ind <- ind + 1
+
+        statistics_df[ind, 1] <- "mean"
+        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
+        ind <- ind + 1
+
+        statistics_df[ind, 1] <- "standard deviation"
+        statistics_df[ind, condition] <- signif(statistics[1, "std"], digits = 3)
+        ind <- ind + 1
+
+        statistics_df[ind, 1] <- "median"
+        statistics_df[ind, condition] <- signif(statistics[1, "median"], digits = 3)
+        ind <- ind + 1
+
+
+      }
+
     }
 
     statistics_df
@@ -983,104 +997,17 @@ server <- function(input, output, session) {
 
   output$downloadData <- downloadHandler(
     filename = function() {
-      filename <- "merged_file.csv"
-      if (input$dataset == "statistics_file") {
-        filename <- "statistics_file.csv"
-        print("Download merged_file.csv")
-      }
-      if (input$dataset == "merged_plot_file") {
-        filename <- paste0("merge_plot", input$image_file_format)
-      }
-      if (input$dataset == "multi_plot_file") {
-        filename <- paste0("multi_plot", input$image_file_format)
-      }
+
+      filename <- "statistics_file.csv"
+
       return(filename)
     },
     content = function(file) {
-      parameters <- fromJSON(file = "parameters/parameters.json")
-      # TODO: use width_a
-      width_ <- as.double(parameters["pdf_figure_size_inches"])
 
-      if (input$dataset == "statistics_file") {
-        return(write.csv(mergedStatistics(), file, row.names = FALSE))
-      } else if ((input$dataset == "multi_plot_file") && (input$image_file_format == ".pdf")) {
-        # pdf(file, width=14, height=14)
-        pdf(file, family = "ArialMT", width = width_, height = width_, pointsize = 18)
-        p <- multi_plot()
-        plot(p)
-        dev.off()
-      } else if ((input$dataset == "multi_plot_file") && (input$image_file_format == ".png")) {
-        png(file, width = 960, height = 960)
-        p <- multi_plot()
-        plot(p)
-        dev.off()
-      } else if ((input$dataset == "multi_plot_file") && (input$image_file_format == ".eps")) {
-        eps(file, width = 14, height = 14)
-        p <- multi_plot()
-        plot(p)
-        dev.off()
-      } else if ((input$dataset == "merged_plot_file") && (input$image_file_format == ".pdf")) {
-        print("Saving merge pdf")
-        pdf(file, family = "ArialMT", width = width_, height = width_, pointsize = 18)
-        p <- merged_plot()
-        plot(p)
-        dev.off()
-      } else if ((input$dataset == "merged_plot_file") && (input$image_file_format == ".png")) {
-        png(file, width = 960, height = 960)
-        p <- merged_plot()
-        plot(p)
-        dev.off()
-      } else if ((input$dataset == "merged_plot_file") && (input$image_file_format == ".eps")) {
-        eps(file, width = width_, height = width_)
-        p <- merged_plot()
-        plot(p)
-        dev.off()
-      } else {
-        (
-          return(write.csv(data_filtered(), file, row.names = FALSE))
-        )
-      }
+      return(write.csv(mergedStatistics(), file, row.names = FALSE))
+
     }
   )
-
-  output$downloadDataSingleImage <- downloadHandler(
-    filename = function() {
-      if (input$datasetSingleImage == "results_file") {
-        filename <- "results_file.csv"
-      }
-      if (input$datasetSingleImage == "statistics_file") {
-        filename <- "statistics_file.csv"
-      }
-      if (input$datasetSingleImage == "rose_histogram") {
-        filename <- "rose_histogram.pdf"
-      }
-      if (input$datasetSingleImage == "orientation_plot") {
-        filename <- "vector_plot.pdf"
-      }
-      filename
-    },
-    content = function(file) {
-      if (input$datasetSingleImage == "results_file") {
-        write.csv(resultSingleImage(), file, row.names = FALSE)
-      }
-      if (input$datasetSingleImage == "statistics_file") {
-        write.csv(singleImageStatistics(), file, row.names = FALSE)
-      }
-      if (input$datasetSingleImage == "rose_histogram") {
-        pdf(file, width = 7, height = 7)
-        p <- rose_histogram_single_image()
-        plot(p)
-        dev.off()
-      }
-      if (input$datasetSingleImage == "orientation_plot") {
-        pdf(file, width = 7, height = 7)
-        p <- vectorPlot()
-        plot(p)
-        dev.off()
-      }
-    }
-  )
-
 
   # download for merged plot
 
