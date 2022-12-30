@@ -89,7 +89,7 @@ ui <- navbarPage(
         radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"),
         conditionalPanel(
           condition = "input.data_upload_form == 'upload data'",
-          checkboxInput("terms_of_use", "I agree to terms of use", FALSE),
+          checkboxInput("terms_of_use", "I agree to 'Terms of Use'", FALSE),
         ),
 
         conditionalPanel(
@@ -375,7 +375,7 @@ ui <- navbarPage(
       ),
       mainPanel(
         tabsetPanel(
-          tabPanel("Text", htmlOutput("terms_of_use_text_all"))
+          tabPanel("Terms of Use", htmlOutput("terms_of_use_text_all"))
         )
       )
     )
@@ -521,8 +521,7 @@ server <- function(input, output, session) {
       # if ((input$data_upload_form == "upload data")) {
       # HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://github.com/wgiese/polarityjam'>polaritjam</a>! on your computer and run this app locally. </p>")
       # HTML("<p>If you enjoyed this tool, please consider <a href='https://www.gofundme.com/f/fantasy-football-mental-health-initiative?utm_medium=copy_link&utm_source=customer&utm_campaign=p_lico+share-sheet'>donating to the Fantasy Football Mental Health Initiative</a>!</p>")
-      HTML("<p>  <font size='+2'> Terms of Use </font><br>
-           Text </p>")
+      includeHTML("Terms-of-Use.html")
     } else {
 
     }
@@ -536,8 +535,7 @@ server <- function(input, output, session) {
     # if ((input$data_upload_form == "upload data")) {
     # HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://github.com/wgiese/polarityjam'>polaritjam</a>! on your computer and run this app locally. </p>")
     # HTML("<p>If you enjoyed this tool, please consider <a href='https://www.gofundme.com/f/fantasy-football-mental-health-initiative?utm_medium=copy_link&utm_source=customer&utm_campaign=p_lico+share-sheet'>donating to the Fantasy Football Mental Health Initiative</a>!</p>")
-    HTML("<p>  <font size='+2'> Terms of Use. </font><br>
-           <font size='-2'> For documentation please visit <a href='https://polarityjam.readthedocs.io/en/latest/'> Link</a> </font>  </p>")
+    includeHTML("Terms-of-Use.html")
   })
 
 
