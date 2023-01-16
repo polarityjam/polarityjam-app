@@ -35,7 +35,7 @@ compute_circular_statistics <- function(data, feature, parameters) {
   cos_mean <- cos_sum / length(circular_data)
   polarity_index <- sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
 
-  signed_polarity_index <- -sign(cos_mean) * sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
+  signed_polarity_index <- -cos_mean * sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
   std_angular <- sqrt(2.0 * (1.0 - polarity_index)) * 180.0 / pi
   std_circular <- sqrt(-2.0 * log(polarity_index)) * 180.0 / pi
 
