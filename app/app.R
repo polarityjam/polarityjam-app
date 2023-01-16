@@ -91,7 +91,9 @@ ui <- navbarPage(
     sidebarLayout(
       sidebarPanel(
 
-        radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"),
+        radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"), # local version
+      # radioButtons("data_upload_form", "Data from:", choices = list("example 1"), selected = "example 1"), # online version
+        
         conditionalPanel(
           condition = "input.data_upload_form == 'upload data'",
           checkboxInput("terms_of_use", "I agree to 'Terms of Use'", FALSE),
@@ -384,6 +386,11 @@ ui <- navbarPage(
         )
       )
     )
+  ),
+  
+  ### Panel E: About
+  
+  tabPanel("About", includeHTML("Terms-of-Use.html")
   )
 )
 
@@ -539,10 +546,6 @@ server <- function(input, output, session) {
     "
     function that the merged stack of polarity data and angles in table format
     "
-
-    # if ((input$data_upload_form == "upload data")) {
-    # HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://github.com/wgiese/polarityjam'>polaritjam</a>! on your computer and run this app locally. </p>")
-    # HTML("<p>If you enjoyed this tool, please consider <a href='https://www.gofundme.com/f/fantasy-football-mental-health-initiative?utm_medium=copy_link&utm_source=customer&utm_campaign=p_lico+share-sheet'>donating to the Fantasy Football Mental Health Initiative</a>!</p>")
     includeHTML("Terms-of-Use.html")
   })
 
