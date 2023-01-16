@@ -1,6 +1,6 @@
 { 
-    "cell_shape_orientation_rad": ["cell_shape_orientation", "undirectional", "cell shape orientation"],
-    "cell_shape_orientation_deg": ["cell_shape_orientation", "undirectional", "cell shape orientation"],
+    "cell_shape_orientation_rad": ["cell_shape_orientation_rad", "undirectional", "cell shape orientation"],
+    "cell_shape_orientation_deg": ["cell_shape_orientation_deg", "undirectional", "cell shape orientation"],
     "cell_major_axis_length": ["cell_major_axis_length", "linear", "cell major axis length"],
     "cell_minor_axis_length": ["cell_minor_axis_length", "linear", "cell minor axis length"],
     "cell_eccentricity": ["cell_eccentricity", "linear", "cell shape eccentricity"],

@@ -57,6 +57,8 @@ option_list <- list(
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
+upload_enabled = TRUE
+
 # Review of color palettes https://thenode.biologists.com/data-visualization-with-flying-colors/research/ and more examples of use see https://huygens.science.uva.nl/PlotTwist/
 # Color palettes Paul Tol: https://personal.sron.nl/~pault/
 
@@ -69,6 +71,9 @@ Tol_light <- c("#BBCC33", "#AAAA00", "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
 
 # From Color Universal Design (CUD): https://jfly.uni-koeln.de/color/
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
+
+
+
 
 
 # Create a reactive object here that we can share between all the sessions.
@@ -467,7 +472,7 @@ server <- function(input, output, session) {
 
       results_all_df <- read.csv("example_1/example_1.csv", header = TRUE)
 
-    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data")) {
+    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data") & upload_enabled) {
 
       results_all_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
 
@@ -517,11 +522,14 @@ server <- function(input, output, session) {
     "
     function that the merged stack of polarity data and angles in table format
     "
+
     if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      # if ((input$data_upload_form == "upload data")) {
-      # HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://github.com/wgiese/polarityjam'>polaritjam</a>! on your computer and run this app locally. </p>")
-      # HTML("<p>If you enjoyed this tool, please consider <a href='https://www.gofundme.com/f/fantasy-football-mental-health-initiative?utm_medium=copy_link&utm_source=customer&utm_campaign=p_lico+share-sheet'>donating to the Fantasy Football Mental Health Initiative</a>!</p>")
-      includeHTML("Terms-of-Use.html")
+      if ( !upload_enabled ) {
+        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
+      } else {
+        includeHTML("Terms-of-Use.html")
+      }
+
     } else {
 
     }
