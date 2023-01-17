@@ -390,7 +390,7 @@ ui <- navbarPage(
   
   ### Panel E: About
   
-  tabPanel("About", includeHTML("Terms-of-Use.html")
+  tabPanel("About", includeHTML("About.html")
   )
 )
 
