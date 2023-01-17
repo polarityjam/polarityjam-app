@@ -49,8 +49,6 @@
     "cell_shape_index": ["cell_shape_index", "linear", "cell shape index"],
     "nuc_circularity": ["nuc_circularity", "linear", "circularity (nuclei shape)"],
     "cell_shape_orientation": ["cell_shape_orientation", "undirectional", "cell shape orientation"], 
-    "angle_rad": ["angle_rad", "axial", "nuclei-golgi polarity"],
-    "text_size_merged_plot": 32,
-    "text_size_multi_plot": 16,
-    "pdf_figure_size_inches": 17.35
+    "nuclei_golgi_rad": ["nuclei_golgi_rad", "directional", "nuclei-golgi polarity"],
+    "nuclei_golgi_deg": ["nuclei_golgi_deg", "directional", "nuclei-golgi polarity"]
 }
