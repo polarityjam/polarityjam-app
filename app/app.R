@@ -390,7 +390,12 @@ ui <- navbarPage(
   
   ### Panel E: About
   
-  tabPanel("About", includeHTML("About.html")
+
+  
+  tabPanel("About", 
+           #imageOutput(img(src='collaboration_logo.png', alt = "supported by", width = 25, height = 25)), 
+           includeHTML("About.html"),
+           imageOutput("support_logo")
   )
 )
 
@@ -398,6 +403,28 @@ ui <- navbarPage(
 # Define server logic
 server <- function(input, output, session) {
 
+  
+  output$support_logo <- renderImage({
+    # A temp file to save the output.
+    # This file will be removed later by renderImage
+    #outfile <- tempfile(fileext = '.png')
+    
+    # Generate the PNG
+    #png(outfile, width = 1825, height = 201)
+    
+    #hist(rnorm(input$obs), main = "Generated in renderImage()")
+    #dev.off()
+    
+    filename <- normalizePath(file.path('collaboration_logo_small.png'))
+    print("logo file name")
+    print(filename)
+    
+    # Return a list containing the filename
+    list(src = filename,
+         #width = 608, height = 67,
+         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
+         )
+  })
 
   ### Panel A
 
