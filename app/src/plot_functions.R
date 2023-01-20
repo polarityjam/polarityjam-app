@@ -69,9 +69,6 @@ select_color <- function(parameters, input, plot_nr) {
 rose_plot_circular <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
   bin_size <- 360 / input$bins
 
-  # feature <- parameters[input$feature_select][[1]][1]
-  # plot_title <- parameters[input$feature_select][[1]][3]
-
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
 
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
@@ -130,10 +127,10 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
         alpha = alpha
       )
   }
-
+  
   if (input$scatter_plot) {
     print("plot points")
-    p + geom_point(aes(x = feature_circular, y = 1))
+    p <- p + geom_point(aes(x = feature_circular, y = 1), size = input$marker_size)
   }
 
   p <- p + ggtitle(plot_title) +
@@ -158,10 +155,7 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
   }
 
 
-  if (input$scatter_plot) {
-    print("plot points")
-    p <- p + geom_point(aes(x = feature_circular, y = 1))
-  }
+
 
 
 
@@ -280,20 +274,19 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
     p_value <- paste0("p = ", toString(p_value_))
   }
 
-  if (input$hemi_rose_options == "all") {
+  if (input$hemi_rose_options != "mirrored") {
+    feature_circular_ <- feature_circular
+  } else {
     n <- length(feature_circular)
     feature_circular_ <- numeric(2 * n)
     for (i in 1:n) {
       feature_circular_[i] <- feature_circular[i]
       feature_circular_[i + n] <- feature_circular[i] + 180.0
     }
-  } else {
-    feature_circular_ <- feature_circular
   }
 
   color_fill <- select_color(parameters, input, plot_nr)
   color <- color_fill
-
   alpha <- 0.5
   if (input$adjust_alpha == TRUE) {
     alpha <- input$alpha_fill
@@ -302,18 +295,53 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
     }
   }
 
+  p <- ggplot()
+
+  if (input$kde_plot) {
+    p <- p +
+      geom_density(aes(x = feature_circular_, y = ..count.. / max(..count..)),
+                   color = color,
+                   fill = color_fill,
+                   alpha = alpha
+      )
+  }
+
+  if (input$histogram_plot) {
+    p <- p +
+      geom_histogram(aes(x = feature_circular_, y = ..ncount..),
+                     breaks = seq(0, 360, bin_size),
+                     color = color,
+                     fill = color_fill,
+                     alpha = alpha
+      )
+  }
+
+  if (input$scatter_plot) {
+    print("plot points")
+    p <- p + geom_point(aes(x = feature_circular_, y = 1), size = input$marker_size)
+  }
+  
+  # alpha <- 0.5
+  # if (input$adjust_alpha == TRUE) {
+  #   alpha <- input$alpha_fill
+  #   if (input$outline != "color") {
+  #     color <- input$outline
+  #   }
+  # }
+
 
 
   # TODO: add scatter plot and KDE
 
-  p <- ggplot() +
-    geom_histogram(aes(x = feature_circular_, y = ..ncount..),
-      breaks = seq(0, 360, bin_size),
-      color = color,
-      fill = color_fill,
-      alpha = alpha
-    ) +
+  # p <- ggplot() +
+  #   geom_histogram(aes(x = feature_circular_, y = ..ncount..),
+  #     breaks = seq(0, 360, bin_size),
+  #     color = color,
+  #     fill = color_fill,
+  #     alpha = alpha
+  #   ) +
     #        geom_density(aes(x = feature_circular)) +
+  p <- p + ggtitle(plot_title) +
     ggtitle(plot_title) +
     theme(plot.title = element_text(size = 10, face = "bold")) +
     theme(axis.text.x = element_text(size = 18)) +
@@ -390,7 +418,7 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
   }
 
 
-  if (input$hemi_rose_options == "all") {
+  if (input$hemi_rose_options == "mirrored") {
     statistics[1, "mean"] <- statistics[1, "mean"] + 180.0
     statistics[1, "ci_95_lower_limit"] <- statistics[1, "ci_95_lower_limit"] + 180.0
     statistics[1, "ci_95_upper_limit"] <- statistics[1, "ci_95_upper_limit"] + 180.0

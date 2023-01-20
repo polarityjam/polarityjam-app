@@ -1,5 +1,6 @@
 { 
-    "cell_shape_orientation": ["cell_shape_orientation", "undirectional", "cell shape orientation"],
+    "cell_shape_orientation_rad": ["cell_shape_orientation_rad", "undirectional", "cell shape orientation"],
+    "cell_shape_orientation_deg": ["cell_shape_orientation_deg", "undirectional", "cell shape orientation"],
     "cell_major_axis_length": ["cell_major_axis_length", "linear", "cell major axis length"],
     "cell_minor_axis_length": ["cell_minor_axis_length", "linear", "cell minor axis length"],
     "cell_eccentricity": ["cell_eccentricity", "linear", "cell shape eccentricity"],
@@ -9,7 +10,7 @@
     "marker_mean_expr": ["marker_mean_expr", "linear", "mean intensity"],
     "marker_sum_expression": ["marker_sum_expression", "linear", "mean intensity"],
     "marker_centroid_orientation_rad": ["marker_centroid_orientation_rad", "directional", "marker polarity"],
-    "marker_centroid_orientation": ["marker_centroid_orientation_rad", "axial", "marker polarity"],
+    "marker_centroid_orientation_deg": ["marker_centroid_orientation_rad", "axial", "marker polarity"],
     "marker_polarity_rad": ["marker_polarity_rad", "axial", "marker polarity"],
     "nuc_displacement_orientation_rad": ["nuc_displacement_orientation_rad", "directional", "nucleus displacement orientation"],
     "nuc_shape_orientation": ["nuc_shape_orientation","undirectional", "nucleus shape orientation"],
@@ -45,9 +46,9 @@
     "neighbors_stddev_dif_2nd": ["neighbors_stddev_dif_2nd", "linear", "2nd neighbors std dev"],
     "neighbors_range_dif_2nd": ["neighbors_range_dif_2nd", "linear", "2nd neighbors range"],
     "cell_circularity": ["cell_circularity", "linear", "circularity (cell shape)"],
+    "cell_shape_index": ["cell_shape_index", "linear", "cell shape index"],
     "nuc_circularity": ["nuc_circularity", "linear", "circularity (nuclei shape)"],
-    "angle_rad": ["angle_rad", "axial", "nuclei-golgi polarity"],
-    "text_size_merged_plot": 32,
-    "text_size_multi_plot": 16,
-    "pdf_figure_size_inches": 17.35
+    "cell_shape_orientation": ["cell_shape_orientation", "undirectional", "cell shape orientation"], 
+    "nuclei_golgi_rad": ["nuclei_golgi_rad", "directional", "nuclei-golgi polarity"],
+    "nuclei_golgi_deg": ["nuclei_golgi_deg", "directional", "nuclei-golgi polarity"]
 }
