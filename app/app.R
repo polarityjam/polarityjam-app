@@ -445,7 +445,8 @@ server <- function(input, output, session) {
  
     #updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
     updateSelectInput(session, "condition_col", choices = var_list, selected = "filename")
-    updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
+    #updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
+    updateSelectInput(session, "feature_select", choices = var_list, selected = "nuclei_golgi_rad")
     updateSelectInput(session, "feature_select_1", choices = var_list, selected = "cell_shape_orientation_rad")
     updateSelectInput(session, "feature_select_2", choices = var_list, selected = "nuc_shape_orientation_rad")
     updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity")
