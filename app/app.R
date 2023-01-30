@@ -73,9 +73,6 @@ Tol_light <- c("#BBCC33", "#AAAA00", "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 
 
-
-
-
 # Create a reactive object here that we can share between all the sessions.
 vals <- reactiveValues(count = 0)
 
@@ -92,8 +89,7 @@ ui <- navbarPage(
       sidebarPanel(
 
         radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"), # local version
-      # radioButtons("data_upload_form", "Data from:", choices = list("example 1"), selected = "example 1"), # online version
-        
+
         conditionalPanel(
           condition = "input.data_upload_form == 'upload data'",
           checkboxInput("terms_of_use", "I agree to 'Terms of Use'", FALSE),
@@ -124,9 +120,7 @@ ui <- navbarPage(
         selectInput("condition_col", "Identifier of conditions", choices = ""),
         
         selectInput("remove_these_conditions", "Deselect these conditions:", "", multiple = TRUE),
-        
 
-        
         checkboxInput("filter_data", "Filter data", FALSE),
         conditionalPanel(
           condition = "input.filter_data == true",
@@ -138,7 +132,6 @@ ui <- navbarPage(
         downloadButton("downloadFilteredData", "Download filtered data")
       ),
 
-      # TODO: Add Terms of Use text
       mainPanel(
         tabsetPanel(
           tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("merged_stack"))
@@ -218,18 +211,12 @@ ui <- navbarPage(
         numericInput("marker_size", "marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
-        #selectInput("dataset", "Choose a dataset:",
-        #  choices = c("statistics_file", "merged_plot_file", "multi_plot_file")
-        #),
-        # selectInput("image_file_format", "Choose image file format:",
-        #            choices = c(".pdf",".eps",".png")),
         downloadButton("downloadData", "Download statistics")
       ),
 
       # Show a plot of the generated distribution
       mainPanel(
         tabsetPanel(
-          #                    tabPanel("Table", tableOutput("merged_stack")),
           tabPanel(
             "Plot", downloadButton("downloadMultiPlotPDF", "Download pdf-file"),
             downloadButton("downloadMultiPlotEPS", "Download eps-file"),
@@ -254,26 +241,14 @@ ui <- navbarPage(
     )
   ),
 
-
-
   ### Panel B: Correlation analysis
 
   tabPanel(
     "Correlation analysis",
     sidebarLayout(
       sidebarPanel(
-        #                fileInput("correlationData", "Upload data file",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv",".xlsx")),
-        #                            tags$hr(),
-        #                checkboxInput("header_correlation", "File upload", TRUE),
         selectInput("feature_select_1", "Choose a feature:", choices = ""),
         selectInput("feature_select_2", "Choose a feature:", choices = ""),
-        # selectInput("feature_select_1", "Choose a feature 1:",
-        #            choices = c("organelle_orientation","major_axis_shape_orientation","major_axis_nucleus_orientation","eccentricity","mean_expression","area","perimeter")),
-        # selectInput("feature_select_2", "Choose a feature 2:",
-        #            choices = c("organelle_orientation","major_axis_shape_orientation","major_axis_nucleus_orientation","eccentricity","mean_expression","area","perimeter")),
         selectInput("datasetSingleImage", "Download:",
           choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
         ),
@@ -315,13 +290,11 @@ ui <- navbarPage(
             NULL,
           ),
           tabPanel("Statistics", tableOutput("correlation_statistics"))
-          # plotOutput("correlation_plot", height = "1000px")),#,
-          # tabPanel("Spoke Plot", plotOutput("spoke_plot", height = "1000px"))#,
-          # tabPanel("Statistics", tableOutput("singleImageStatistics"))
         )
       )
     )
   ),
+
 
   ### Panel C: Comparison statistics
 
@@ -329,44 +302,21 @@ ui <- navbarPage(
     "Compare",
     sidebarLayout(
       sidebarPanel(
-        #                fileInput("control_condition", "Control condition",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv")),
-        #                tags$hr(),
-        #                checkboxInput("header_cond1", "File upload", TRUE),
-
-        #                fileInput("condition_2", "Condition 2",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv")),
-        #                tags$hr(),
-        #                checkboxInput("header_cond2", "File upload", TRUE),
-        #                sliderInput("bins_comparison",
-        #                            "Number of bins:",
-        #                            min = 1,
-        #                            max = 30,
-        #                            value = 12),
-
 
         selectInput("control_condition", "control condition", choices = ""),
-        selectInput("feature_comparison", "Choose a feature:",
-          choices = c(
-            "organelle_orientation", "major_axis_shape_orientation",
-            "major_axis_nucleus_orientation", "eccentricity", "major_over_minor_ratio",
-            "mean_expression", "marker_polarity", "area", "perimeter"
-          )
-        ),
+        selectInput("feature_comparison", "Choose a feature:", choices = ""),
         checkboxInput("kde_comparison", "KDE plot", FALSE),
         checkboxInput("histogram_comparison", "Histogram plot", TRUE),
+        #TODO: check whether split view can be beneficial
         #                checkboxInput("split_view_comparison", "Split view", TRUE),
       ),
       mainPanel(
-        # tabPanel("Plot", plotOutput("comparison_plot", height = "1000px")),
         tabsetPanel(
+          #TODO: revise plotting options and add download
           tabPanel("Plot", plotOutput("comparison_plot", height = "1000px")),
           tabPanel("CDF Plot", plotOutput("CDFPlot")),
-          tabPanel("Statistics", tableOutput("comparison_statistics"))
+          tabPanel("Statistics", tableOutput("comparison_statistics")),
+          NULL
         )
       )
     )
@@ -389,11 +339,8 @@ ui <- navbarPage(
   ),
   
   ### Panel E: About
-  
 
-  
   tabPanel("About", 
-           #imageOutput(img(src='collaboration_logo.png', alt = "supported by", width = 25, height = 25)), 
            includeHTML("About.html"),
            imageOutput("support_logo")
   )
@@ -403,34 +350,13 @@ ui <- navbarPage(
 # Define server logic
 server <- function(input, output, session) {
 
-  
-  output$support_logo <- renderImage({
-    # A temp file to save the output.
-    # This file will be removed later by renderImage
-    #outfile <- tempfile(fileext = '.png')
-    
-    # Generate the PNG
-    #png(outfile, width = 1825, height = 201)
-    
-    #hist(rnorm(input$obs), main = "Generated in renderImage()")
-    #dev.off()
-    
-    filename <- normalizePath(file.path('collaboration_logo_small.png'))
-    print("logo file name")
-    print(filename)
-    
-    # Return a list containing the filename
-    list(src = filename,
-         #width = 608, height = 67,
-         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
-         )
-  })
-
   ### Panel A
 
   observe({
+
     data <- data_upload()
     var_names <- colnames(data_upload())
+
     print("var_names")
     print(var_names)
     if (length(var_names) > 0) {
@@ -553,29 +479,6 @@ server <- function(input, output, session) {
   })
 
 
-  output$terms_of_use_text <- renderText({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-
-    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      if ( !upload_enabled ) {
-        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
-      } else {
-        includeHTML("Terms-of-Use.html")
-      }
-
-    } else {
-
-    }
-  })
-
-  output$terms_of_use_text_all <- renderText({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-    includeHTML("Terms-of-Use.html")
-  })
 
 
   output$merged_stack <- renderTable({
@@ -1935,6 +1838,50 @@ server <- function(input, output, session) {
 
     statistics_df <- comparisonStatistics()
     statistics_df
+  })
+
+  ### END OF COMPARISON TAB ###
+
+  ### Panel D: Terms of Use ###
+
+  output$terms_of_use_text <- renderText({
+    "
+    function that the merged stack of polarity data and angles in table format
+    "
+
+    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
+      if ( !upload_enabled ) {
+        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
+      } else {
+        includeHTML("Terms-of-Use.html")
+      }
+
+    } else {
+
+    }
+  })
+
+  output$terms_of_use_text_all <- renderText({
+    "
+    function that the merged stack of polarity data and angles in table format
+    "
+    includeHTML("Terms-of-Use.html")
+  })
+
+  ### Panel E: About ##
+
+  #' @returns logo, used for About panel
+  output$support_logo <- renderImage({
+
+    filename <- normalizePath(file.path('collaboration_logo_small.png'))
+    print("logo file name")
+    print(filename)
+
+    # Return a list containing the filename
+    list(src = filename,
+         #width = 608, height = 67,
+         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
+         )
   })
 }
 
