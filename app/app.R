@@ -687,10 +687,9 @@ server <- function(input, output, session) {
 
   output$merged_statistics <- renderTable(
     {
-      "
+     "
     function that shows the descriptive statistics of the merged data stack in table format
     "
-
       statistics_df <- mergedStatistics()
       statistics_df
     },
@@ -710,26 +709,17 @@ server <- function(input, output, session) {
     exp_condition <- input$exp_condition
     feature <- parameters[input$feature_select][[1]][1]
 
-    #if (parameters[input$feature_select][[1]][2] == "directional") {
     if (input$plot_mode == "directional") {
-
-      print("directional feature!")
-
 
       x_data <- unlist(results_all_df[feature]) * 180.0 / pi
       statistics <- compute_circular_statistics(results_all_df, feature, parameters)
       plot_title <- parameters[input$feature_select][[1]][3]
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
-    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+
     } else if (input$plot_mode == "undirectional") {
 
       x_data <- results_all_df[feature]
       statistics <- compute_undirectional_statistics(results_all_df, feature, parameters)
-      # if (input$left_directional) {
-      #  x_data <- unlist(transform_undirectional(input,x_data))*180.0/pi
-      # } else {
-      #  x_data <- unlist(results_all_df[feature])*180.0/pi
-      # }
       x_data <- unlist(transform_undirectional(input, x_data)) * 180.0 / pi
 
       plot_title <- parameters[input$feature_select][[1]][3]
@@ -753,7 +743,6 @@ server <- function(input, output, session) {
   
   output$merged_plot <- renderPlot(width = width_A, height = height_A, {
     parameters <- fromJSON(file = "parameters/parameters.json")
-    # parameters[input$feature_select][[1]][1]
 
     if (input$feature_select %in% names(parameters)) {
       p <- merged_plot()
@@ -761,14 +750,6 @@ server <- function(input, output, session) {
     } else {
 
     }
-
-    # if (input$feature_select == "filename") {
-    #
-    #        }
-    #        else {
-    #            p <-merged_plot()
-    #            p
-    #        }
   })
 
   output$parameter_error <- renderText({
@@ -794,12 +775,6 @@ server <- function(input, output, session) {
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
 
-    #datapath <- stack_data_info$datapath
-    #print(datapath)
-
-    #file_list <- list.files(datapath)
-    #print(file_list)
-
     i <- 1
     angle_dists <- list()
     file_names <- list()
@@ -807,24 +782,6 @@ server <- function(input, output, session) {
     angle_mean_degs <- list()
 
     results_all_df <- data_filtered()
-
-    #   for(row_nr in 1:nrow(results_all_df)) {
-    #       row <- results_all_df[row_nr,]
-    # a <- row$major_axis_length
-    # b <- row$minor_axis_length
-    #
-    # eccentricity <- sqrt(1.0 - b*b/(a*a))
-    # results_all_df[row_nr,"cell_eccentricity"] = eccentricity
-    # }
-
-    # threshold <- input$min_eccentricity
-    # if ("cell_eccentricity" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$eccentricity> threshold)
-    # }
-    # threshold <- input$min_nuclei_golgi_dist
-    # if ("orgenelle_distance" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$distance > threshold)
-    # }
 
     feature <- parameters[input$feature_select][[1]][1]
     condition_col <- input$condition_col
