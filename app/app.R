@@ -68,9 +68,6 @@ Tol_light <- c("#BBCC33", "#AAAA00", "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 
 
-
-
-
 # Create a reactive object here that we can share between all the sessions.
 vals <- reactiveValues(count = 0)
 
@@ -79,7 +76,7 @@ vals <- reactiveValues(count = 0)
 ui <- navbarPage(
   "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
 
-  ### Panel 0: Data upload and preparation
+  ### Panel A: Data upload and preparation
 
   tabPanel(
     "Data preparation",
@@ -87,8 +84,7 @@ ui <- navbarPage(
       sidebarPanel(
 
         radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"), # local version
-      # radioButtons("data_upload_form", "Data from:", choices = list("example 1"), selected = "example 1"), # online version
-        
+
         conditionalPanel(
           condition = "input.data_upload_form == 'upload data'",
           checkboxInput("terms_of_use", "I agree to 'Terms of Use'", FALSE),
@@ -119,9 +115,7 @@ ui <- navbarPage(
         selectInput("condition_col", "Identifier of conditions", choices = ""),
         
         selectInput("remove_these_conditions", "Deselect these conditions:", "", multiple = TRUE),
-        
 
-        
         checkboxInput("filter_data", "Filter data", FALSE),
         conditionalPanel(
           condition = "input.filter_data == true",
@@ -133,7 +127,6 @@ ui <- navbarPage(
         downloadButton("downloadFilteredData", "Download filtered data")
       ),
 
-      # TODO: Add Terms of Use text
       mainPanel(
         tabsetPanel(
           tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("merged_stack"))
@@ -143,16 +136,23 @@ ui <- navbarPage(
   ),
 
 
-  ### Panel A: Plot data
+  ### Panel B: Plot data
 
   tabPanel(
     "Plot data",
     sidebarLayout(
       sidebarPanel(
         selectInput("feature_select", "Choose a feature:", choices = ""),
+        selectInput("plot_mode", "Choose data modality:",
+          choices = c("directional", "undirectional", "linear"),
+          selected = "directional"
+        ),
         selectInput("stats_method", "Choose a stats test",
           choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
         ),
+       #selectInput("plot_type", "Choose a plot type",
+        #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
+        #),
         conditionalPanel(
           condition = "input.stats_method == 'V-Test'",
           numericInput("cond_mean_direction",
@@ -185,10 +185,7 @@ ui <- navbarPage(
         checkboxInput("kde_plot", "KDE plot", FALSE),
         checkboxInput("area_scaled", "area scaled histogram", TRUE),
 
-        selectInput("plot_mode", "Choose data modality:",
-          choices = c("directional", "undirectional", "linear"),
-          selected = "directional"
-        ),
+
         conditionalPanel(
           condition = "input.plot_mode == 'undirectional'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
@@ -213,18 +210,12 @@ ui <- navbarPage(
         numericInput("marker_size", "marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
-        #selectInput("dataset", "Choose a dataset:",
-        #  choices = c("statistics_file", "merged_plot_file", "multi_plot_file")
-        #),
-        # selectInput("image_file_format", "Choose image file format:",
-        #            choices = c(".pdf",".eps",".png")),
         downloadButton("downloadData", "Download statistics")
       ),
 
       # Show a plot of the generated distribution
       mainPanel(
         tabsetPanel(
-          #                    tabPanel("Table", tableOutput("merged_stack")),
           tabPanel(
             "Plot", downloadButton("downloadMultiPlotPDF", "Download pdf-file"),
             downloadButton("downloadMultiPlotEPS", "Download eps-file"),
@@ -249,26 +240,14 @@ ui <- navbarPage(
     )
   ),
 
-
-
-  ### Panel B: Correlation analysis
+  ### Panel C: Correlation analysis
 
   tabPanel(
     "Correlation analysis",
     sidebarLayout(
       sidebarPanel(
-        #                fileInput("correlationData", "Upload data file",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv",".xlsx")),
-        #                            tags$hr(),
-        #                checkboxInput("header_correlation", "File upload", TRUE),
         selectInput("feature_select_1", "Choose a feature:", choices = ""),
         selectInput("feature_select_2", "Choose a feature:", choices = ""),
-        # selectInput("feature_select_1", "Choose a feature 1:",
-        #            choices = c("organelle_orientation","major_axis_shape_orientation","major_axis_nucleus_orientation","eccentricity","mean_expression","area","perimeter")),
-        # selectInput("feature_select_2", "Choose a feature 2:",
-        #            choices = c("organelle_orientation","major_axis_shape_orientation","major_axis_nucleus_orientation","eccentricity","mean_expression","area","perimeter")),
         selectInput("datasetSingleImage", "Download:",
           choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
         ),
@@ -310,64 +289,39 @@ ui <- navbarPage(
             NULL,
           ),
           tabPanel("Statistics", tableOutput("correlation_statistics"))
-          # plotOutput("correlation_plot", height = "1000px")),#,
-          # tabPanel("Spoke Plot", plotOutput("spoke_plot", height = "1000px"))#,
-          # tabPanel("Statistics", tableOutput("singleImageStatistics"))
         )
       )
     )
   ),
 
-  ### Panel C: Comparison statistics
+
+  ### Panel D: Comparison statistics
 
   tabPanel(
     "Compare",
     sidebarLayout(
       sidebarPanel(
-        #                fileInput("control_condition", "Control condition",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv")),
-        #                tags$hr(),
-        #                checkboxInput("header_cond1", "File upload", TRUE),
-
-        #                fileInput("condition_2", "Condition 2",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv")),
-        #                tags$hr(),
-        #                checkboxInput("header_cond2", "File upload", TRUE),
-        #                sliderInput("bins_comparison",
-        #                            "Number of bins:",
-        #                            min = 1,
-        #                            max = 30,
-        #                            value = 12),
-
 
         selectInput("control_condition", "control condition", choices = ""),
-        selectInput("feature_comparison", "Choose a feature:",
-          choices = c(
-            "organelle_orientation", "major_axis_shape_orientation",
-            "major_axis_nucleus_orientation", "eccentricity", "major_over_minor_ratio",
-            "mean_expression", "marker_polarity", "area", "perimeter"
-          )
-        ),
+        selectInput("feature_comparison", "Choose a feature:", choices = ""),
         checkboxInput("kde_comparison", "KDE plot", FALSE),
         checkboxInput("histogram_comparison", "Histogram plot", TRUE),
+        #TODO: check whether split view can be beneficial
         #                checkboxInput("split_view_comparison", "Split view", TRUE),
       ),
       mainPanel(
-        # tabPanel("Plot", plotOutput("comparison_plot", height = "1000px")),
         tabsetPanel(
+          #TODO: revise plotting options and add download
           tabPanel("Plot", plotOutput("comparison_plot", height = "1000px")),
           tabPanel("CDF Plot", plotOutput("CDFPlot")),
-          tabPanel("Statistics", tableOutput("comparison_statistics"))
+          tabPanel("Statistics", tableOutput("comparison_statistics")),
+          NULL
         )
       )
     )
   ),
 
-  ### Panel D: Terms of Use
+  ### Panel E: Terms of Use
 
   tabPanel(
     "Terms of Use",
@@ -383,12 +337,9 @@ ui <- navbarPage(
     )
   ),
   
-  ### Panel E: About
-  
+  ### Panel F: About
 
-  
   tabPanel("About", 
-           #imageOutput(img(src='collaboration_logo.png', alt = "supported by", width = 25, height = 25)), 
            includeHTML("About.html"),
            imageOutput("support_logo")
   )
@@ -398,46 +349,54 @@ ui <- navbarPage(
 # Define server logic
 server <- function(input, output, session) {
 
-  
-  output$support_logo <- renderImage({
-    # A temp file to save the output.
-    # This file will be removed later by renderImage
-    #outfile <- tempfile(fileext = '.png')
-    
-    # Generate the PNG
-    #png(outfile, width = 1825, height = 201)
-    
-    #hist(rnorm(input$obs), main = "Generated in renderImage()")
-    #dev.off()
-    
-    filename <- normalizePath(file.path('collaboration_logo_small.png'))
-    print("logo file name")
-    print(filename)
-    
-    # Return a list containing the filename
-    list(src = filename,
-         #width = 608, height = 67,
-         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
-         )
+  ### functions related to: Panel A, data preparation
+
+  data_upload <- reactive({
+    "
+    reactive function that reads a csv file or xls file and returns a data frame,
+    rows containing NA values are removed
+    "
+
+    inFileStackData <- input$stackData
+
+    if (input$data_upload_form == "example 1") {
+
+      data_df <- read.csv("example_1/example_1.csv", header = TRUE)
+
+    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data") & upload_enabled) {
+
+      data_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
+
+    } else {
+
+        data_df <- data.frame()
+
+    }
+
+    data_df <- na.omit(data_df)
+    data_df
   })
 
-  ### Panel A
-
   observe({
+    "
+    update choices for fields according to data frame columns
+    Panal A: condition_col, filter_column
+    Panel B: feature_select
+    Panel C: feature_select_1, feature_select_2
+    Panel D: feature_comparison
+    "
+
     data <- data_upload()
     var_names <- colnames(data_upload())
-    print("var_names")
+
     print(var_names)
+
     if (length(var_names) > 0) {
       var_list <- c("none", var_names)
     } else {
-      print("var_name is not a list")
       var_list <- c("none")
     }
-    print("var_list")
-    print(var_list)
-    # }
- 
+
     #updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
     updateSelectInput(session, "condition_col", choices = var_list, selected = "filename")
     #updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
@@ -447,29 +406,19 @@ server <- function(input, output, session) {
     updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity")
     updateSelectInput(session, "filter_column", choices = var_list, selected="none")
 
-    #parameters <- fromJSON(file = "parameters/parameters.json")
-    #stats_mode <- parameters[input$feature_select][[1]][2]
-    #updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
-
-
   })
-  
-  
+
   observeEvent(input$condition_col != 'none', {
-    
+    "
+    update list of conditions for removal in Panel A
+    "
+
     data <- data_upload()
     var_names <- colnames(data_upload())
-    #data_ <- data %>% select(for_filterning = !!condition_col)
-    #condition_list <- levels(factor(data_$for_filterning))
     if (length(var_names) > 0) {
       if (input$condition_col %in% colnames(data)) {
         print(input$condition_col)
-        #condition_list <- unlist(unique(data[input$condition_col]))
         condition_list <- unique(data[input$condition_col])
-        #data_ <- data %>% select(for_filtering = !!input$condition_col)
-        #condition_list <- levels(factor(data_$for_filtering))
-  
-        print(condition_list)
         updateSelectInput(session, "remove_these_conditions", choices = condition_list)
       }
     }
@@ -477,68 +426,42 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$feature_select != 'none', {
+    "
+    select data modality directional circular data, undirectional circular data or linear (non-circular) data,
+    auto select if present in parameter file
+    "
+
     parameters <- fromJSON(file = "parameters/parameters.json")
     if (input$feature_select %in% names(parameters)) {
-
       stats_mode <- parameters[input$feature_select][[1]][2]
       updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
-
     } else {
       updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = "directional")
     }
   })
-  
 
-  data_upload <- reactive({
-    "
-    reactive function that reads all csv files 
-    from the directory given in stack_data_info$datapath 
-    and combines them into one data frame
-    "
+  data_filtered <- reactive({
+    df_filtered <- data_upload() 
 
-    inFileStackData <- input$stackData
-
-    if (input$data_upload_form == "example 1") {
-
-      results_all_df <- read.csv("example_1/example_1.csv", header = TRUE)
-
-    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data") & upload_enabled) {
-
-      results_all_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
-
-    } else {
-
-        results_all_df <- data.frame()
-
-    }
-
-
-
-
+    #if subsampling data is selected, only every n-th row is kept
     if (input$subsample_data) {
-      N <- nrow(results_all_df) %/% input$subsample_n
-      if (nrow(results_all_df) > N) {
-        results_all_df <- results_all_df[sample(nrow(results_all_df), N), ]
+      N <- nrow(df_filtered) %/% input$subsample_n
+      if (nrow(df_filtered) > N) {
+        df_filtered <- df_filtered[sample(nrow(df_filtered), N), ]
       }
     }
 
-    results_all_df <- na.omit(results_all_df)
-    results_all_df
-  })
-  
-  
-  data_filtered <- reactive({
-    df_filtered <- data_upload() 
-    #### filter data
+    ### filter out selected conditions (categorial)
     if ( !is.null(input$remove_these_conditions) && (input$condition_col != "none"))
     {
       condition_column <- input$condition_col
       remove_these_conditions <- input$remove_these_conditions
-      print("remove these considions")
-      observe({print(remove_these_conditions )})
+      #print("remove these considions:")
+      #observe({print(remove_these_conditions )})
       df_filtered <- df_filtered %>% filter(!.data[[condition_column[[1]]]] %in% !!remove_these_conditions)
     }
-    
+
+    # remove samples that are outside of the specified value range
     if ( (input$filter_data == TRUE) && (input$filter_column != "none")) {
       df_filtered <- df_filtered[df_filtered[input$filter_column] > input$min_value, ]
       df_filtered <- df_filtered[df_filtered[input$filter_column] < input$max_value, ]
@@ -548,35 +471,11 @@ server <- function(input, output, session) {
   })
 
 
-  output$terms_of_use_text <- renderText({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-
-    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      if ( !upload_enabled ) {
-        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
-      } else {
-        includeHTML("Terms-of-Use.html")
-      }
-
-    } else {
-
-    }
-  })
-
-  output$terms_of_use_text_all <- renderText({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-    includeHTML("Terms-of-Use.html")
-  })
-
-
   output$merged_stack <- renderTable({
     "
-    function that the merged stack of polarity data and angles in table format
+    function that prints data in Panel A
     "
+
     if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
       # data.frame( "Info" = c("Dear user, data upload is currently not possible in the online version.",
       #                       "Please download the Rshiny app from \n and run locally."))
@@ -585,19 +484,16 @@ server <- function(input, output, session) {
     }
   })
 
+  ### functions related to: Panel B, data visualization
 
   mergedStatistics <- reactive({
     "
     reactive function that reads a stack of spreadsheet and returns a data frame 
     with descriptive statistics including circular mean, circular standard deviation 
     and nearest neighbours for the merged stack of data
-
-    TODO: rework threhsolding
-
     "
 
     results_df <- data_filtered()
-
 
     print("Data Frame in merged statistics:")
     print(head(results_df))
@@ -786,10 +682,9 @@ server <- function(input, output, session) {
 
   output$merged_statistics <- renderTable(
     {
-      "
+     "
     function that shows the descriptive statistics of the merged data stack in table format
     "
-
       statistics_df <- mergedStatistics()
       statistics_df
     },
@@ -809,26 +704,17 @@ server <- function(input, output, session) {
     exp_condition <- input$exp_condition
     feature <- parameters[input$feature_select][[1]][1]
 
-    #if (parameters[input$feature_select][[1]][2] == "directional") {
     if (input$plot_mode == "directional") {
-
-      print("directional feature!")
-
 
       x_data <- unlist(results_all_df[feature]) * 180.0 / pi
       statistics <- compute_circular_statistics(results_all_df, feature, parameters)
       plot_title <- parameters[input$feature_select][[1]][3]
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
-    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+
     } else if (input$plot_mode == "undirectional") {
 
       x_data <- results_all_df[feature]
       statistics <- compute_undirectional_statistics(results_all_df, feature, parameters)
-      # if (input$left_directional) {
-      #  x_data <- unlist(transform_undirectional(input,x_data))*180.0/pi
-      # } else {
-      #  x_data <- unlist(results_all_df[feature])*180.0/pi
-      # }
       x_data <- unlist(transform_undirectional(input, x_data)) * 180.0 / pi
 
       plot_title <- parameters[input$feature_select][[1]][3]
@@ -852,7 +738,6 @@ server <- function(input, output, session) {
   
   output$merged_plot <- renderPlot(width = width_A, height = height_A, {
     parameters <- fromJSON(file = "parameters/parameters.json")
-    # parameters[input$feature_select][[1]][1]
 
     if (input$feature_select %in% names(parameters)) {
       p <- merged_plot()
@@ -860,46 +745,30 @@ server <- function(input, output, session) {
     } else {
 
     }
-
-    # if (input$feature_select == "filename") {
-    #
-    #        }
-    #        else {
-    #            p <-merged_plot()
-    #            p
-    #        }
   })
 
   output$parameter_error <- renderText({
     parameters <- fromJSON(file = "parameters/parameters.json")
-    # parameters[input$feature_select][[1]][1]
-    # if (input$feature_select == "filename") {
-    #    print("Plotting of this parameter is not supported.")
-    # }
-    # else {
-    #
-    # }
 
     if (input$feature_select %in% names(parameters)) {
 
     } else {
       print("Plotting of this parameter is not supported.")
     }
+
   })
 
 
   multi_plot <- reactive({
+    "
+    function that plots data for every condition in the selected column of the data frame
+    "
+
     source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
     source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
-
-    #datapath <- stack_data_info$datapath
-    #print(datapath)
-
-    #file_list <- list.files(datapath)
-    #print(file_list)
 
     i <- 1
     angle_dists <- list()
@@ -908,24 +777,6 @@ server <- function(input, output, session) {
     angle_mean_degs <- list()
 
     results_all_df <- data_filtered()
-
-    #   for(row_nr in 1:nrow(results_all_df)) {
-    #       row <- results_all_df[row_nr,]
-    # a <- row$major_axis_length
-    # b <- row$minor_axis_length
-    #
-    # eccentricity <- sqrt(1.0 - b*b/(a*a))
-    # results_all_df[row_nr,"cell_eccentricity"] = eccentricity
-    # }
-
-    # threshold <- input$min_eccentricity
-    # if ("cell_eccentricity" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$eccentricity> threshold)
-    # }
-    # threshold <- input$min_nuclei_golgi_dist
-    # if ("orgenelle_distance" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$distance > threshold)
-    # }
 
     feature <- parameters[input$feature_select][[1]][1]
     condition_col <- input$condition_col
@@ -1930,6 +1781,50 @@ server <- function(input, output, session) {
 
     statistics_df <- comparisonStatistics()
     statistics_df
+  })
+
+  ### END OF COMPARISON TAB ###
+
+  ### Panel D: Terms of Use ###
+
+  output$terms_of_use_text <- renderText({
+    "
+    function that the merged stack of polarity data and angles in table format
+    "
+
+    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
+      if ( !upload_enabled ) {
+        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
+      } else {
+        includeHTML("Terms-of-Use.html")
+      }
+
+    } else {
+
+    }
+  })
+
+  output$terms_of_use_text_all <- renderText({
+    "
+    function that the merged stack of polarity data and angles in table format
+    "
+    includeHTML("Terms-of-Use.html")
+  })
+
+  ### Panel E: About ##
+
+  #' @returns logo, used for About panel
+  output$support_logo <- renderImage({
+
+    filename <- normalizePath(file.path('collaboration_logo_small.png'))
+    print("logo file name")
+    print(filename)
+
+    # Return a list containing the filename
+    list(src = filename,
+         #width = 608, height = 67,
+         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
+         )
   })
 }
 
