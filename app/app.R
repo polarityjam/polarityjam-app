@@ -129,7 +129,7 @@ ui <- navbarPage(
 
       mainPanel(
         tabsetPanel(
-          tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("merged_stack"))
+          tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("data_table"))
         )
       )
     )
@@ -379,8 +379,8 @@ server <- function(input, output, session) {
 
   observe({
     "
-    update choices for fields according to data frame columns
-    Panal A: condition_col, filter_column
+    update choices for fields according to data frame columns:
+    Panel A: condition_col, filter_column
     Panel B: feature_select
     Panel C: feature_select_1, feature_select_2
     Panel D: feature_comparison
@@ -410,7 +410,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$condition_col != 'none', {
     "
-    update list of conditions for removal in Panel A
+    update list of conditions that can be removed by the user in Panel A
     "
 
     data <- data_upload()
@@ -471,68 +471,67 @@ server <- function(input, output, session) {
   })
 
 
-  output$merged_stack <- renderTable({
+  output$data_table <- renderTable({
     "
     function that prints data in Panel A
     "
 
     if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      # data.frame( "Info" = c("Dear user, data upload is currently not possible in the online version.",
-      #                       "Please download the Rshiny app from \n and run locally."))
+
     } else {
       data_filtered()
     }
   })
 
-  ### functions related to: Panel B, data visualization
+  output$downloadFilteredData <- downloadHandler(
+  #  "
+  #  download filtered data displayed in Panel A
+  #  "
 
-  mergedStatistics <- reactive({
+    filename = function() {
+      filename <- "data_filtered.csv"
+      return(filename)
+    },
+    content = function(file) {
+      return(write.csv(data_filtered(), file, row.names = FALSE))
+    }
+  )
+
+  #####################################################
+  ### functions related to: Panel B, data visualization
+  #####################################################
+
+  summaryStatistics <- reactive({
     "
     reactive function that reads a stack of spreadsheet and returns a data frame 
     with descriptive statistics including circular mean, circular standard deviation 
     and nearest neighbours for the merged stack of data
     "
 
-    results_df <- data_filtered()
-
-    print("Data Frame in merged statistics:")
-    print(head(results_df))
+    data_df <- data_filtered()
 
     source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     parameters <- fromJSON(file = "parameters/parameters.json")
 
     condition_col <- input$condition_col
-    condition_list <- unlist(unique(results_df[condition_col]))
+    condition_list <- unlist(unique(data_df[condition_col]))
 
     feature <- parameters[input$feature_select][[1]][1]
-
-    #    threshold <- input$min_nuclei_golgi_dist
-    #    if ("organelle_distance" %in% colnames(results_df)){
-    #      results_df <- subset(results_df, results_df$distance > threshold)
-    #    }
 
     statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = 0))
     cols <- c("statistical measure")
     for (condition in condition_list) {
       cols <- c(cols, condition)
     }
-    #cols <- c(cols, "description")
-
+    cols <- c(cols, "all (merged)")
 
     colnames(statistics_df) <- cols # c("entity", "value") #, "comment")
 
-    print("Colnames")
-    print(colnames(statistics_df))
-    # print("Feature property")
-    # print(parameters[input$feature_select][[1]][2])
-    #if (parameters[input$feature_select][[1]][2] == "directional") {
+    # TODO: move this into a function
+
     if (input$plot_mode == "directional") {
       for (condition in condition_list) {
-        #condition_data <- subset(results_df, results_df[condition_col] == condition)
-        condition_data <- results_df[results_df[condition_col] == condition,]
-
-        print("Condition subset: ")
-        print(head(condition_data))
+        condition_data <- data_df[data_df[condition_col] == condition,]
 
         x_data <- unlist(condition_data[feature]) * 180.0 / pi
         statistics <- compute_circular_statistics(condition_data, feature, parameters)
@@ -590,14 +589,8 @@ server <- function(input, output, session) {
     #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
     } else if (input$plot_mode == "undirectional") {
       for (condition in condition_list) {
-        print("Condition")
-        print(condition)
-        #print(condition_col)
 
-        #print(head(results_df))
-
-        #condition_data <- subset(results_df, results_df[condition_col] == condition)
-        condition_data <- results_df[results_df[condition_col] == condition,]
+        condition_data <- data_df[data_df[condition_col] == condition,]
         print("Condition subset: ")
         print(head(condition_data))
         
@@ -651,7 +644,7 @@ server <- function(input, output, session) {
     } else {
 
       for (condition in condition_list) {
-        condition_data <- results_df[results_df[condition_col] == condition,]
+        condition_data <- data_df[data_df[condition_col] == condition,]
 
         statistics <- compute_linear_statistics(results_df, feature, parameters)
 
@@ -685,7 +678,7 @@ server <- function(input, output, session) {
      "
     function that shows the descriptive statistics of the merged data stack in table format
     "
-      statistics_df <- mergedStatistics()
+      statistics_df <- summaryStatistics()
       statistics_df
     },
     digits = 3
@@ -890,16 +883,6 @@ server <- function(input, output, session) {
     multi_plot()
   })
 
-  output$downloadFilteredData <- downloadHandler(
-    filename = function() {
-      filename <- "data_filtered.csv"
-      return(filename)
-    },
-    content = function(file) {
-      return(write.csv(data_filtered(), file, row.names = FALSE))
-    }
-  )
-
   output$downloadData <- downloadHandler(
     filename = function() {
 
@@ -909,7 +892,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
 
-      return(write.csv(mergedStatistics(), file, row.names = FALSE))
+      return(write.csv(summaryStatistics(), file, row.names = FALSE))
 
     }
   )
@@ -1211,7 +1194,7 @@ server <- function(input, output, session) {
           
         }
       statistics_df
-      #statistics_df <- mergedStatistics()
+      #statistics_df <- summaryStatistics()
       #statistics_df
     },
     digits = 3
