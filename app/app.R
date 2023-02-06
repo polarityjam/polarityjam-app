@@ -535,12 +535,9 @@ server <- function(input, output, session) {
 
         x_data <- unlist(condition_data[feature]) * 180.0 / pi
         statistics <- compute_circular_statistics(condition_data, feature, parameters)
-        print("Statistics")
-        print(statistics)
 
         p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
-        # if (statistics[1,"rayleigh_test"] < 0.001)
-        #    p_value <- "p < 0.001"
+
         p_value_mu <- signif(statistics[1, "v_test"], digits = 3)
         # if (statistics[1,"rayleigh_test_mu"] < 0.001)
         #    p_value_mu <- "p < 0.001"
