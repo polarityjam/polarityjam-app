@@ -530,58 +530,31 @@ server <- function(input, output, session) {
     # TODO: move this into a function
 
     if (input$plot_mode == "directional") {
+      statistics <- compute_circular_statistics(data_df, feature, parameters)
+
+      t_statistics = t(statistics)
+
+
+      statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = nrow(t_statistics)))
+      colnames(statistics_df) <- cols
+      statistics_df[,"statistical measure"] <- rownames(t_statistics)
+      statistics_df[,"all (merged)"] <- t_statistics[,1]
+
       for (condition in condition_list) {
         condition_data <- data_df[data_df[condition_col] == condition,]
-
         x_data <- unlist(condition_data[feature]) * 180.0 / pi
         statistics <- compute_circular_statistics(condition_data, feature, parameters)
+        t_statistics = t(statistics)
+        statistics_df[,condition] <- t_statistics[,1]
 
-        p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
 
-        p_value_mu <- signif(statistics[1, "v_test"], digits = 3)
-        # if (statistics[1,"rayleigh_test_mu"] < 0.001)
-        #    p_value_mu <- "p < 0.001"
-        ind <- 1
-        statistics_df[ind, 1] <- "number of cells"
-        statistics_df[ind, condition] <- nrow(condition_data)
 
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "mean (degree)"
-        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
 
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "polarity index"
-        statistics_df[ind, condition] <- signif(statistics[1, "polarity_index"], digits = 3)
 
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "signed polarity index (mean = 180)"
-        statistics_df[ind, condition] <- signif(statistics[1, "signed_polarity_index"], digits = 3)
+        #statistics_df[,"statistical measure"] <- statistics[, "statistic"]
+        #statistics_df[,condition] <- statistics[, "value"]
 
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "angular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_angular"], digits = 3)
-        # statistics_df[ind,3] <- "angular standard deviation, takes values in [0,sqrt(2)], see https://doi.org/10.18637/jss.v031.i10 for more info."
 
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "circular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_circular"], digits = 3)
-        # statistics_df[ind,3] <- "circular standard deviation, takes values in [0,inf], see https://doi.org/10.18637/jss.v031.i10 for more info."
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, lower limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_lower_limit"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, upper limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_upper_limit"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "Rayleigh test, p-value:"
-        statistics_df[ind, condition] <- p_value
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "V-test p-value (cond. mean = 180): "
-        statistics_df[ind, condition] <- p_value_mu
       }
     #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
     } else if (input$plot_mode == "undirectional") {
@@ -842,14 +815,14 @@ server <- function(input, output, session) {
       # }
 
 
-      if (parameters[input$feature_select][[1]][2] == "directional") {
+      if (input$plot_mode == "directional") {
         statistics <- compute_circular_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+      } else if (input$plot_mode == "undirectional") {
         x_data <- results_df[feature]
         # print(x_data)
         statistics <- compute_undirectional_statistics(results_df, feature, parameters)
@@ -1581,14 +1554,14 @@ server <- function(input, output, session) {
       # }
 
 
-      if (parameters[input$feature_select][[1]][2] == "directional") {
+      if (input$plot_mode == "directional") {
         statistics <- compute_circular_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+      } else if (input$plot_mode == "undirectional") {
         x_data <- results_df[feature]
         # print(x_data)
         statistics <- compute_undirectional_statistics(results_df, feature, parameters)
