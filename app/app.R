@@ -143,7 +143,7 @@ ui <- navbarPage(
     sidebarLayout(
       sidebarPanel(
         selectInput("feature_select", "Choose a feature:", choices = ""),
-        selectInput("plot_mode", "Choose data modality:",
+        selectInput("stats_mode", "Choose data modality:",
           choices = c("directional", "undirectional", "linear"),
           selected = "directional"
         ),
@@ -187,7 +187,7 @@ ui <- navbarPage(
 
 
         conditionalPanel(
-          condition = "input.plot_mode == 'undirectional'",
+          condition = "input.stats_mode == 'undirectional'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
             choices = c("mirrored", "up", "down", "left", "right")
           )
@@ -434,9 +434,9 @@ server <- function(input, output, session) {
     parameters <- fromJSON(file = "parameters/parameters.json")
     if (input$feature_select %in% names(parameters)) {
       stats_mode <- parameters[input$feature_select][[1]][2]
-      updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
+      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
     } else {
-      updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = "directional")
+      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = "directional")
     }
   })
 
@@ -529,8 +529,8 @@ server <- function(input, output, session) {
 
     # TODO: move this into a function
 
-    if (input$plot_mode == "directional") {
-      statistics <- compute_circular_statistics(data_df, feature, parameters)
+    if (input$stats_mode == "directional") {
+      statistics <- compute_directional_statistics(data_df, feature, parameters)
 
       t_statistics = t(statistics)
 
@@ -543,21 +543,11 @@ server <- function(input, output, session) {
       for (condition in condition_list) {
         condition_data <- data_df[data_df[condition_col] == condition,]
         x_data <- unlist(condition_data[feature]) * 180.0 / pi
-        statistics <- compute_circular_statistics(condition_data, feature, parameters)
+        statistics <- compute_directional_statistics(condition_data, feature, parameters)
         t_statistics = t(statistics)
         statistics_df[,condition] <- t_statistics[,1]
-
-
-
-
-
-        #statistics_df[,"statistical measure"] <- statistics[, "statistic"]
-        #statistics_df[,condition] <- statistics[, "value"]
-
-
       }
-    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
-    } else if (input$plot_mode == "undirectional") {
+     } else if (input$stats_mode == "undirectional") {
       for (condition in condition_list) {
 
         condition_data <- data_df[data_df[condition_col] == condition,]
@@ -667,14 +657,14 @@ server <- function(input, output, session) {
     exp_condition <- input$exp_condition
     feature <- parameters[input$feature_select][[1]][1]
 
-    if (input$plot_mode == "directional") {
+    if (input$stats_mode == "directional") {
 
       x_data <- unlist(results_all_df[feature]) * 180.0 / pi
-      statistics <- compute_circular_statistics(results_all_df, feature, parameters)
+      statistics <- compute_directional_statistics(results_all_df, feature, parameters)
       plot_title <- parameters[input$feature_select][[1]][3]
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
 
-    } else if (input$plot_mode == "undirectional") {
+    } else if (input$stats_mode == "undirectional") {
 
       x_data <- results_all_df[feature]
       statistics <- compute_undirectional_statistics(results_all_df, feature, parameters)
@@ -815,14 +805,14 @@ server <- function(input, output, session) {
       # }
 
 
-      if (input$plot_mode == "directional") {
-        statistics <- compute_circular_statistics(results_df, feature, parameters)
+      if (input$stats_mode == "directional") {
+        statistics <- compute_directional_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (input$plot_mode == "undirectional") {
+      } else if (input$stats_mode == "undirectional") {
         x_data <- results_df[feature]
         # print(x_data)
         statistics <- compute_undirectional_statistics(results_df, feature, parameters)
@@ -1554,14 +1544,14 @@ server <- function(input, output, session) {
       # }
 
 
-      if (input$plot_mode == "directional") {
-        statistics <- compute_circular_statistics(results_df, feature, parameters)
+      if (input$stats_mode == "directional") {
+        statistics <- compute_directional_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (input$plot_mode == "undirectional") {
+      } else if (input$stats_mode == "undirectional") {
         x_data <- results_df[feature]
         # print(x_data)
         statistics <- compute_undirectional_statistics(results_df, feature, parameters)
