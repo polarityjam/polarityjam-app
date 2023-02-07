@@ -234,7 +234,7 @@ ui <- navbarPage(
             textOutput("parameter_error"),
             NULL,
           ),
-          tabPanel("Statistics", tableOutput("merged_statistics"))
+          tabPanel("Statistics", tableOutput("summaryStatisticsTable"))
         )
       )
     )
@@ -380,10 +380,6 @@ server <- function(input, output, session) {
   observe({
     "
     update choices for fields according to data frame columns:
-    Panel A: condition_col, filter_column
-    Panel B: feature_select
-    Panel C: feature_select_1, feature_select_2
-    Panel D: feature_comparison
     "
 
     data <- data_upload()
@@ -398,12 +394,12 @@ server <- function(input, output, session) {
     }
 
     #updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
-    updateSelectInput(session, "condition_col", choices = var_list, selected = "filename")
+    updateSelectInput(session, "condition_col", choices = var_list, selected = "filename") # for Panel A
     #updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
-    updateSelectInput(session, "feature_select", choices = var_list, selected = "nuclei_golgi_rad")
-    updateSelectInput(session, "feature_select_1", choices = var_list, selected = "cell_shape_orientation_rad")
-    updateSelectInput(session, "feature_select_2", choices = var_list, selected = "nuc_shape_orientation_rad")
-    updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity")
+    updateSelectInput(session, "feature_select", choices = var_list, selected = "nuclei_golgi_rad") # for Panel B
+    updateSelectInput(session, "feature_select_1", choices = var_list, selected = "cell_shape_orientation_rad") # for Panel C
+    updateSelectInput(session, "feature_select_2", choices = var_list, selected = "nuc_shape_orientation_rad") # for Panel C
+    updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity") # for Panel D
     updateSelectInput(session, "filter_column", choices = var_list, selected="none")
 
   })
@@ -504,8 +500,7 @@ server <- function(input, output, session) {
   summaryStatistics <- reactive({
     "
     reactive function that reads a stack of spreadsheet and returns a data frame 
-    with descriptive statistics including circular mean, circular standard deviation 
-    and nearest neighbours for the merged stack of data
+    with descriptive statistics depending on the selected data modality directional, undirectional or linear
     "
 
     data_df <- data_filtered()
@@ -516,124 +511,36 @@ server <- function(input, output, session) {
     condition_col <- input$condition_col
     condition_list <- unlist(unique(data_df[condition_col]))
 
-    feature <- parameters[input$feature_select][[1]][1]
+    feature <- input$feature_select
+    if (feature %in% names(parameters)) {
+      feature <- parameters[input$feature_select][[1]][1]
+    }
 
-    statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = 0))
     cols <- c("statistical measure")
     for (condition in condition_list) {
       cols <- c(cols, condition)
     }
     cols <- c(cols, "all (merged)")
 
-    colnames(statistics_df) <- cols # c("entity", "value") #, "comment")
+    statistics <- compute_statistics(data_df, feature, parameters)
+    t_statistics = t(statistics)
+    statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = nrow(t_statistics)))
+    colnames(statistics_df) <- cols
+    statistics_df[,"statistical measure"] <- rownames(t_statistics)
+    statistics_df[,"all (merged)"] <- t_statistics[,1]
 
-    # TODO: move this into a function
-
-    if (input$stats_mode == "directional") {
-      statistics <- compute_directional_statistics(data_df, feature, parameters)
-
+    for (condition in condition_list) {
+      condition_data <- data_df[data_df[condition_col] == condition,]
+      x_data <- unlist(condition_data[feature]) * 180.0 / pi
+      statistics <- compute_statistics(condition_data, feature, parameters)
       t_statistics = t(statistics)
-
-
-      statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = nrow(t_statistics)))
-      colnames(statistics_df) <- cols
-      statistics_df[,"statistical measure"] <- rownames(t_statistics)
-      statistics_df[,"all (merged)"] <- t_statistics[,1]
-
-      for (condition in condition_list) {
-        condition_data <- data_df[data_df[condition_col] == condition,]
-        x_data <- unlist(condition_data[feature]) * 180.0 / pi
-        statistics <- compute_directional_statistics(condition_data, feature, parameters)
-        t_statistics = t(statistics)
-        statistics_df[,condition] <- t_statistics[,1]
-      }
-     } else if (input$stats_mode == "undirectional") {
-      for (condition in condition_list) {
-
-        condition_data <- data_df[data_df[condition_col] == condition,]
-        print("Condition subset: ")
-        print(head(condition_data))
-        
-        x_data <- unlist(condition_data[feature]) * 180.0 / pi
-        statistics <- compute_undirectional_statistics(condition_data, feature, parameters)
-        print("Statistics")
-        print(statistics)
-        
-        p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
-
-        ind <- 1
-        statistics_df[ind, 1] <- "number of cells"
-        statistics_df[ind, condition] <- nrow(condition_data)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "mean (degree)"
-        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "polarity index"
-        statistics_df[ind, condition] <- signif(statistics[1, "polarity_index"], digits = 3)
-        
-        #ind <- ind + 1
-        #statistics_df[ind, 1] <- "signed polarity index (mean = 180)"
-        #statistics_df[ind, condition] <- signif(statistics[1, "signed_polarity_index"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "angular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_angular"], digits = 3)
-        # statistics_df[ind,3] <- "angular standard deviation, takes values in [0,sqrt(2)], see https://doi.org/10.18637/jss.v031.i10 for more info."
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "circular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_circular"], digits = 3)
-        # statistics_df[ind,3] <- "circular standard deviation, takes values in [0,inf], see https://doi.org/10.18637/jss.v031.i10 for more info."
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, lower limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_lower_limit"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, upper limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_upper_limit"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "Rayleigh test, p-value:"
-        statistics_df[ind, condition] <- p_value
-        
-      }
-      
-    } else {
-
-      for (condition in condition_list) {
-        condition_data <- data_df[data_df[condition_col] == condition,]
-
-        statistics <- compute_linear_statistics(results_df, feature, parameters)
-
-        ind <- 1
-        statistics_df[ind, 1] <- "cells"
-        statistics_df[ind, condition] <- nrow(results_df)
-        ind <- ind + 1
-
-        statistics_df[ind, 1] <- "mean"
-        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
-        ind <- ind + 1
-
-        statistics_df[ind, 1] <- "standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std"], digits = 3)
-        ind <- ind + 1
-
-        statistics_df[ind, 1] <- "median"
-        statistics_df[ind, condition] <- signif(statistics[1, "median"], digits = 3)
-        ind <- ind + 1
-
-
-      }
-
+      statistics_df[,condition] <- t_statistics[,1]
     }
 
     statistics_df
   })
 
-  output$merged_statistics <- renderTable(
+  output$summaryStatisticsTable <- renderTable(
     {
      "
     function that shows the descriptive statistics of the merged data stack in table format
@@ -748,30 +655,11 @@ server <- function(input, output, session) {
     for (file_name in condition_list) {
       results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
 
-      # values <- compute_polarity_index(results_df)
-
-
-      # print(values)
-      # polarity_index <- values[["polarity_index"]]
-      # angle_mean_deg <- values[["angle_mean_deg"]]
-
       x <- unlist(results_df[feature])
       angle_dists[[i]] <- x
 
-
-      # if (parameters[input$feature_select][[1]][2] == "linear") {
-      #
-      #    if (x_lim[0] > min(x))
-      #        x_lim[0] <- min(x)
-      #    if (x_lim[1] < max(x))
-      #        x_lim[1] <- max(x)
-      #
-      #       }
-
       file_names[[i]] <- file_name
 
-      # polarity_indices[[i]] <- polarity_index
-      # angle_mean_degs[[i]] <- angle_mean_deg
       i <- i + 1
     }
 
@@ -964,7 +852,7 @@ server <- function(input, output, session) {
   )
 
 
-  ### Panel B
+  ### Panel C
 
   plot_correlation <- reactive({
     

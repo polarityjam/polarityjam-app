@@ -48,7 +48,24 @@ compute_circular_mean <- function(circular_data) {
   return(angle_mean_rad)
 }
 
+compute_statistics <- function(data, feature, stats_mode, parameters) {
+
+  if (input$stats_mode == "directional") {
+    statistics <- compute_directional_statistics(data, feature, parameters)
+  } else if (input$stats_mode == "undirectional") {
+    statistics <- compute_undirectional_statistics(data, feature, parameters)
+  } else {
+    statistics <- compute_linear_statistics(data, feature, parameters)
+  }
+
+  return(statistics)
+}
+
 compute_directional_statistics <- function(data, feature, parameters) {
+  "
+  Computes directional statistics for a given feature and returns a data frame with the results
+  "
+
   circular_data <- unlist(data[feature])
   sin_sum <- 0.0
   cos_sum <- 0.0
@@ -68,7 +85,6 @@ compute_directional_statistics <- function(data, feature, parameters) {
   signed_polarity_index <- -cos_mean * sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
   std_angular <- sqrt(2.0 * (1.0 - polarity_index)) * 180.0 / pi
   std_circular <- sqrt(-2.0 * log(polarity_index)) * 180.0 / pi
-
 
   print("Polarity index")
   print(polarity_index)
@@ -103,7 +119,6 @@ compute_directional_statistics <- function(data, feature, parameters) {
     std_ang_low_lim <- std_ang_low_lim + 360.0
   }
 
-
   rayleigh_test_res <- r.test(circular_data)
   # rayleigh_test_res <- r.test(results_df$angle_deg, degree = TRUE)
   watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
@@ -111,22 +126,15 @@ compute_directional_statistics <- function(data, feature, parameters) {
   rao_res <- capture.output(rao.spacing.test(circular_data, alpha = 0))
 
   v_test_res <- v0.test(circular_data, mu0 = pi)
-  # rayleigh_test_mu_res <- v0.test(results_df$angle_deg, mu0 = 180.0, degree = TRUE)
   if (input$stats_method %in% c("V-Test")) {
     v_test_res <- v0.test(circular_data, mu0 = pi * input$cond_mean_direction / 180.0)
-    # av_test_res <- v0.test(circular_data, mu0 = pi*input$cond_mean_direction/180.0)
   }
 
 
   rayleigh_test <- rayleigh_test_res$p.value
   v_test <- v_test_res$p.value
-  # rayleigh_test_mu <- rayleigh_test_mu_res$p.value
 
   ci_95_res <- vm.bootstrap.ci(circular_data, alpha = 0.05)
-  # print("Confidence interval:")
-  # print(ci_res$mu.ci)
-  # print(str(ci_res$mu.ci))
-  # print(ci_res$mu.ci[[1]])
   ci_95_lower_limit <- transform_rad_degrees(ci_95_res$mu.ci[[1]], -pi, pi, 0.0, 360.0)
   ci_95_upper_limit <- transform_rad_degrees(ci_95_res$mu.ci[[2]], -pi, pi, 0.0, 360.0)
 
@@ -139,22 +147,11 @@ compute_directional_statistics <- function(data, feature, parameters) {
   ci_50_lower_limit <- transform_rad_degrees(ci_50_res$mu.ci[[1]], -pi, pi, 0.0, 360.0)
   ci_50_upper_limit <- transform_rad_degrees(ci_50_res$mu.ci[[2]], -pi, pi, 0.0, 360.0)
 
-  # against_flow <- polarity_data[(polarity_data 150*pi/180.0),]
-  # against_flow <- against_flow [(against_flow < 210*pi/180.0),]
-  # with_flow <- polarity_data[((polarity_data > 330*pi/180.0) | (polarity_data < 30*pi/180.0)),]
-
-  # signed_polarity_index <- (nrow(against_flow) - nrow(with_flow))/(nrow(against_flow) + nrow(with_flow))
-
-  # values <- c(polarity_index, sin_mean, cos_mean, angle_mean_deg)
-  # names(values) <- c("polarity_index", "sin_mean", "cos_mean", "angle_mean_deg")
-
-  # values <- data.frame("polarity_index" = polarity_index, "signed_polarity_index" = signed_polarity_index, "sin_mean" = sin_mean, "cos_mean" = cos_mean, "angle_mean_deg" = angle_mean_deg )
-
   values <- data.frame(
     "number of cells" = nrow(data),
     "polarity_index" = polarity_index,
     "mean" = angle_mean_deg,
-    "signed_polarity_index" = signed_polarity_index,
+    "V_score" = signed_polarity_index,
     "std_angular" = std_angular,
     "std_circ_up_lim" = std_circ_up_lim,
     "std_circ_low_lim" = std_circ_low_lim,
@@ -332,4 +329,5 @@ compute_linear_statistics <- function(data, feature, parameters) {
   median_ <- median(data)
 
   values <- data.frame("mean" = mean_, "std" = std_, "median" = median_)
+  return(values)
 }
