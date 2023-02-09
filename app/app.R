@@ -150,7 +150,7 @@ ui <- navbarPage(
         selectInput("stats_method", "Choose a stats test",
           choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
         ),
-       #selectInput("plot_type", "Choose a plot type",
+        #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
         #),
         conditionalPanel(
@@ -160,6 +160,19 @@ ui <- navbarPage(
             value = 180
           ),
           NULL
+        ),
+        checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
+        checkboxInput("scatter_plot", "Scatter plot", TRUE),
+        checkboxInput("histogram_plot", "Histogram plot", TRUE),
+        conditionalPanel(
+          condition = "input.histogram_plot == true",
+          sliderInput("bins",
+            "Number of bins:",
+            min = 4,
+            max = 36,
+            value = 12
+          ),
+          checkboxInput("area_scaled", "Area scaled histogram", TRUE),
         ),
         checkboxInput("ci_plot", "Confidence interval (CI)", TRUE),
         conditionalPanel(
@@ -171,19 +184,8 @@ ui <- navbarPage(
             )
           )
         ),
-        checkboxInput("histogram_plot", "Histogram plot", TRUE),
-        conditionalPanel(
-          condition = "input.histogram_plot == true",
-          sliderInput("bins",
-            "Number of bins:",
-            min = 4,
-            max = 36,
-            value = 12
-          ),
-        ),
-        checkboxInput("scatter_plot", "Scatter plot", FALSE),
+
         checkboxInput("kde_plot", "KDE plot", FALSE),
-        checkboxInput("area_scaled", "area scaled histogram", TRUE),
 
 
         conditionalPanel(
@@ -199,15 +201,15 @@ ui <- navbarPage(
           condition = "input.select_colormap != 'gray'",
           numericInput("select_color", "Select a color from color scheme:", value = 1, min = 1, max = 10, step = 1),
         ),
-        checkboxInput("adjust_alpha", "adjust transparency", FALSE),
+        checkboxInput("adjust_alpha", "Adjust transparency", FALSE),
         conditionalPanel(
           condition = "input.adjust_alpha == true",
           numericInput("alpha_fill", "set alpha fill:", value = 0.5, min = 0.0, max = 1.0, step = 0.1),
           selectInput("outline", "choose outline style:", choice = c("color", "white", "black"))
         ),
         
-        numericInput("text_size", "text size", value = 12, min = 4, max = 50, step = 1),
-        numericInput("marker_size", "marker size", value = 3, min = 1, max = 20, step = 1),
+        numericInput("text_size", "Text size", value = 12, min = 4, max = 50, step = 1),
+        numericInput("marker_size", "Marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
         downloadButton("downloadData", "Download statistics")

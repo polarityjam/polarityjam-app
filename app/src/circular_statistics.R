@@ -193,6 +193,8 @@ comparison_circular_statistics <- function(data_1, data_2, feature, parameters) 
 
 
 compute_undirectional_statistics <- function(data, feature, parameters) {
+
+
   p_directional_data <- unlist(data[feature])
   circular_data <- unlist(data[feature])
 

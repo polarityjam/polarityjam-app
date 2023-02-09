@@ -94,9 +94,6 @@ select_color <- function(parameters, input, plot_nr) {
   return(color)
 }
 
-
-# rose_plot_undirectional <- function(feature_undirectional)
-
 rose_plot_circular <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
   bin_size <- 360 / input$bins
 
@@ -161,7 +158,8 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
   
   if (input$scatter_plot) {
     print("plot points")
-    p <- p + geom_point(aes(x = feature_circular, y = 1), size = input$marker_size)
+    p <- p + geom_point(aes(x = feature_circular, y = 1), size = input$marker_size, alpha = 0.5)
+    #p <- p + geom_jitter(aes(x = feature_circular, y = 1), size = input$marker_size)
   }
 
   p <- p + ggtitle(plot_title) +
@@ -295,7 +293,6 @@ compare_plot_circular <- function(parameters, input, statistics, feature_circula
 
 rose_plot_undirectional <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
   bin_size <- 360 / input$bins
-  # plot_title <- parameters[input$feature_select][[1]][3]
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
@@ -352,26 +349,6 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
     p <- p + geom_point(aes(x = feature_circular_, y = 1), size = input$marker_size)
   }
   
-  # alpha <- 0.5
-  # if (input$adjust_alpha == TRUE) {
-  #   alpha <- input$alpha_fill
-  #   if (input$outline != "color") {
-  #     color <- input$outline
-  #   }
-  # }
-
-
-
-  # TODO: add scatter plot and KDE
-
-  # p <- ggplot() +
-  #   geom_histogram(aes(x = feature_circular_, y = ..ncount..),
-  #     breaks = seq(0, 360, bin_size),
-  #     color = color,
-  #     fill = color_fill,
-  #     alpha = alpha
-  #   ) +
-    #        geom_density(aes(x = feature_circular)) +
   p <- p + ggtitle(plot_title) +
     ggtitle(plot_title) +
     theme(plot.title = element_text(size = 10, face = "bold")) +
@@ -457,6 +434,10 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
     statistics[1, "ci_90_upper_limit"] <- statistics[1, "ci_90_upper_limit"] + 180.0
     statistics[1, "ci_50_lower_limit"] <- statistics[1, "ci_50_lower_limit"] + 180.0
     statistics[1, "ci_50_upper_limit"] <- statistics[1, "ci_50_upper_limit"] + 180.0
+    statistics[1, "std_circ_low_lim"] <- statistics[1, "std_circ_low_lim"] + 180.0
+    statistics[1, "std_circ_up_lim"] <- statistics[1, "std_circ_up_lim"] + 180.0
+    statistics[1, "std_ang_low_lim"] <- statistics[1, "std_ang_low_lim"] + 180.0
+    statistics[1, "std_ang_up_lim"] <- statistics[1, "std_ang_up_lim"] + 180.0
 
     p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index, size = 1.5, color = "red", lineend = "butt"), arrow = NULL) + theme(legend.position = "none")
 
@@ -464,6 +445,8 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
       if (input$ci_method == "95% CI of the mean") {
         p <- p + geom_segment(data = statistics, aes(x = ci_95_lower_limit, y = 0, xend = ci_95_lower_limit, yend = 1), size = 1.5, color = "red", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
         p <- p + geom_segment(data = statistics, aes(x = ci_95_upper_limit, y = 0, xend = ci_95_upper_limit, yend = 1), size = 1.5, color = "red", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
+        #p <- p + geom_segment(data = statistics, aes(x = ci_95_lower_limit, y = 0.3, xend = mean, yend = 0.3), size = 1.5, color = "red", arrow = NULL) + theme(legend.position = "none")
+        #p <- p + geom_segment(data = statistics, aes(x = mean, y = 0.3, xend = ci_95_upper_limit, yend = 0.3), size = 1.5, color = "red", arrow = NULL) + theme(legend.position = "none")
       }
       if (input$ci_method == "90% CI of the mean") {
         p <- p + geom_segment(data = statistics, aes(x = ci_90_lower_limit, y = 0, xend = ci_90_lower_limit, yend = 1), size = 1.5, color = "red", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
