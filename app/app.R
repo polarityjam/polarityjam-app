@@ -540,15 +540,13 @@ server <- function(input, output, session) {
     statistics_df
   })
 
-  output$summaryStatisticsTable <- renderTable(
-    {
+  output$summaryStatisticsTable <- renderTable(    {
      "
     function that shows the descriptive statistics of the merged data stack in table format
     "
       statistics_df <- summaryStatistics()
       statistics_df
-    },
-    digits = 3
+    }#, digits = 3
   )
 
   merged_plot <- reactive({
@@ -618,7 +616,6 @@ server <- function(input, output, session) {
 
   })
 
-
   multi_plot <- reactive({
     "
     function that plots data for every condition in the selected column of the data frame
@@ -662,8 +659,6 @@ server <- function(input, output, session) {
 
       i <- i + 1
     }
-
-
 
     n <- length(angle_dists)
     nCol <- floor(sqrt(n))
