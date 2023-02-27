@@ -224,7 +224,7 @@ ui <- navbarPage(
             downloadButton("downloadMultiPlotSVG", "Download svg-file"),
             downloadButton("downloadMultiPlotPNG", "Download png-file"),
             div(`data-spy` = "affix", `data-offset-top` = "10", withSpinner(plotOutput("multi_dist_plot", height = "120%"))),
-            # textOutput("parameter_error"),
+            #textOutput("parameter_error"),
             NULL,
           ),
           tabPanel(
@@ -233,7 +233,7 @@ ui <- navbarPage(
             downloadButton("downloadMergedPlotSVG", "Download svg-file"),
             downloadButton("downloadMergedPlotPNG", "Download png-file"),
             div(`data-spy` = "affix", `data-offset-top` = "10", withSpinner(plotOutput("merged_plot", height = "120%"))),
-            textOutput("parameter_error"),
+            #textOutput("parameter_error"),
             NULL,
           ),
           tabPanel("Statistics", tableOutput("summaryStatisticsTable"))
@@ -395,13 +395,23 @@ server <- function(input, output, session) {
       var_list <- c("none")
     }
 
+    # set defaults
+    feature_select_default = "nuclei_golgi_rad"
+    if (feature_select_default %in% var_list) {
+      feature_select_default = feature_select_default
+    } else if ("cell_shape_orientation_rad" %in% var_list) {
+      feature_select_default = "cell_shape_orientation_rad"
+    } else {
+      feature_select_default = "none"
+    }
+
     #updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
     updateSelectInput(session, "condition_col", choices = var_list, selected = "filename") # for Panel A
     #updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
-    updateSelectInput(session, "feature_select", choices = var_list, selected = "nuclei_golgi_rad") # for Panel B
+    updateSelectInput(session, "feature_select", choices = var_list, selected = feature_select_default) # for Panel B
     updateSelectInput(session, "feature_select_1", choices = var_list, selected = "cell_shape_orientation_rad") # for Panel C
     updateSelectInput(session, "feature_select_2", choices = var_list, selected = "nuc_shape_orientation_rad") # for Panel C
-    updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity") # for Panel D
+    updateSelectInput(session, "feature_comparison", choices = var_list, selected = feature_select_default) # for Panel D
     updateSelectInput(session, "filter_column", choices = var_list, selected="none")
 
   })
@@ -434,7 +444,7 @@ server <- function(input, output, session) {
       stats_mode <- parameters[input$feature_select][[1]][2]
       updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
     } else {
-      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = "directional")
+      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = "linear")
     }
   })
 
@@ -599,12 +609,12 @@ server <- function(input, output, session) {
   output$merged_plot <- renderPlot(width = width_A, height = height_A, {
     parameters <- fromJSON(file = "parameters/parameters.json")
 
-    if (input$feature_select %in% names(parameters)) {
-      p <- merged_plot()
-      p
-    } else {
-
-    }
+    #if (input$feature_select %in% names(parameters)) {
+    p <- merged_plot()
+    p
+    #} else {
+    #
+    #}
   })
 
   output$parameter_error <- renderText({
@@ -636,17 +646,21 @@ server <- function(input, output, session) {
     angle_mean_degs <- list()
 
     results_all_df <- data_filtered()
+    feature <- input$feature_select
+    if (feature %in% names(parameters)) {
+      feature <- parameters[input$feature_select][[1]][1]
+    }
 
-    feature <- parameters[input$feature_select][[1]][1]
+    #feature <- parameters[input$feature_select][[1]][1]
     condition_col <- input$condition_col
 
     condition_list <- unlist(unique(results_all_df[condition_col]))
     # plist <- vector('list', length(unique(results_all_df$filename)))
-    plist <- vector("list", length(condition_list))
-    print("length of plot list")
-    print(plist)
-    print("list of unique entries")
-    print(unlist(unique(results_all_df[condition_col])))
+    #plist <- vector("list", length(condition_list))
+    #print("length of plot list")
+    #print(plist)
+    #print("list of unique entries")
+    #print(unlist(unique(results_all_df[condition_col])))
 
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
     # for(file_name in unique(results_all_df$filename)) {
@@ -714,6 +728,7 @@ server <- function(input, output, session) {
         # plot_title <- file_name
         # p <- linear_histogram(parameters, input, statistics, x_data,  plot_title, i, text_size, x_lim[0], x_lim[1])
         p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(results_all_df[feature]), max(results_all_df[feature]))
+        #p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(x_data), max(x_data))
       }
     }
 
@@ -725,7 +740,13 @@ server <- function(input, output, session) {
   })
 
   output$multi_dist_plot <- renderPlot(width = width_A, height = height_A, {
-    multi_plot()
+
+    feature <- input$feature_select
+    #if (feature %in% colnames()) {
+        multi_plot()
+    #} else {
+    #    print("Please select a feature")
+    #}
   })
 
   output$downloadData <- downloadHandler(

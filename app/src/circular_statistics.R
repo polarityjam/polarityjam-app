@@ -302,11 +302,11 @@ compute_undirectional_statistics <- function(data, feature, parameters) {
 
 
 compute_linear_statistics <- function(data, feature, parameters) {
-  data <- unlist(data[feature])
+  data_ <- unlist(data[feature])
 
-  mean_ <- mean(data)
-  std_ <- sd(data)
-  median_ <- median(data)
+  mean_ <- mean(data_)
+  std_ <- sd(data_)
+  median_ <- median(data_)
 
   values <- data.frame( "number of cells" = nrow(data),
                         "mean" = mean_,
