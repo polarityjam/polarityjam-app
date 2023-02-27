@@ -1,5 +1,5 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Polarity JaM: Shiny app for plotting and comparing polarity data (beta 0.2)
+# Polarity JaM: Shiny app for plotting and comparing polarity data
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Takes spreadsheet type data as input with circular and non-circular features
 # Visualization of circular and non-circular distributions
@@ -36,19 +36,14 @@ library(shiny)
 library(shinyFiles)
 library(shinycssloaders)
 library(circular)
-# library(CircMLE)
 library(ggplot2)
-library(shape)
 library(shinyWidgets)
 library(tools)
 library(grid)
-library(lattice)
 library(gridExtra)
-library(FNN)
 library(tidyverse)
 library(CircStats)
 library(readxl)
-#library(fs)
 library(rjson)
 library(optparse)
 
@@ -73,9 +68,6 @@ Tol_light <- c("#BBCC33", "#AAAA00", "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 
 
-
-
-
 # Create a reactive object here that we can share between all the sessions.
 vals <- reactiveValues(count = 0)
 
@@ -84,7 +76,7 @@ vals <- reactiveValues(count = 0)
 ui <- navbarPage(
   "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
 
-  ### Panel 0: Data upload and preparation
+  ### Panel A: Data upload and preparation
 
   tabPanel(
     "Data preparation",
@@ -92,8 +84,7 @@ ui <- navbarPage(
       sidebarPanel(
 
         radioButtons("data_upload_form", "Data from:", choices = list("example 1", "upload data"), selected = "example 1"), # local version
-      # radioButtons("data_upload_form", "Data from:", choices = list("example 1"), selected = "example 1"), # online version
-        
+
         conditionalPanel(
           condition = "input.data_upload_form == 'upload data'",
           checkboxInput("terms_of_use", "I agree to 'Terms of Use'", FALSE),
@@ -124,9 +115,7 @@ ui <- navbarPage(
         selectInput("condition_col", "Identifier of conditions", choices = ""),
         
         selectInput("remove_these_conditions", "Deselect these conditions:", "", multiple = TRUE),
-        
 
-        
         checkboxInput("filter_data", "Filter data", FALSE),
         conditionalPanel(
           condition = "input.filter_data == true",
@@ -138,26 +127,32 @@ ui <- navbarPage(
         downloadButton("downloadFilteredData", "Download filtered data")
       ),
 
-      # TODO: Add Terms of Use text
       mainPanel(
         tabsetPanel(
-          tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("merged_stack"))
+          tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("data_table"))
         )
       )
     )
   ),
 
 
-  ### Panel A: Plot data
+  ### Panel B: Plot data
 
   tabPanel(
     "Plot data",
     sidebarLayout(
       sidebarPanel(
         selectInput("feature_select", "Choose a feature:", choices = ""),
+        selectInput("stats_mode", "Choose data modality:",
+          choices = c("directional", "undirectional", "linear"),
+          selected = "directional"
+        ),
         selectInput("stats_method", "Choose a stats test",
           choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
         ),
+        #selectInput("plot_type", "Choose a plot type",
+        #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
+        #),
         conditionalPanel(
           condition = "input.stats_method == 'V-Test'",
           numericInput("cond_mean_direction",
@@ -165,6 +160,19 @@ ui <- navbarPage(
             value = 180
           ),
           NULL
+        ),
+        checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
+        checkboxInput("scatter_plot", "Scatter plot", TRUE),
+        checkboxInput("histogram_plot", "Histogram plot", TRUE),
+        conditionalPanel(
+          condition = "input.histogram_plot == true",
+          sliderInput("bins",
+            "Number of bins:",
+            min = 4,
+            max = 36,
+            value = 12
+          ),
+          checkboxInput("area_scaled", "Area scaled histogram", TRUE),
         ),
         checkboxInput("ci_plot", "Confidence interval (CI)", TRUE),
         conditionalPanel(
@@ -176,26 +184,12 @@ ui <- navbarPage(
             )
           )
         ),
-        checkboxInput("histogram_plot", "Histogram plot", TRUE),
-        conditionalPanel(
-          condition = "input.histogram_plot == true",
-          sliderInput("bins",
-            "Number of bins:",
-            min = 4,
-            max = 36,
-            value = 12
-          ),
-        ),
-        checkboxInput("scatter_plot", "Scatter plot", FALSE),
-        checkboxInput("kde_plot", "KDE plot", FALSE),
-        checkboxInput("area_scaled", "area scaled histogram", TRUE),
 
-        selectInput("plot_mode", "Choose data modality:",
-          choices = c("directional", "undirectional", "linear"),
-          selected = "directional"
-        ),
+        checkboxInput("kde_plot", "KDE plot", FALSE),
+
+
         conditionalPanel(
-          condition = "input.plot_mode == 'undirectional'",
+          condition = "input.stats_mode == 'undirectional'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
             choices = c("mirrored", "up", "down", "left", "right")
           )
@@ -207,36 +201,30 @@ ui <- navbarPage(
           condition = "input.select_colormap != 'gray'",
           numericInput("select_color", "Select a color from color scheme:", value = 1, min = 1, max = 10, step = 1),
         ),
-        checkboxInput("adjust_alpha", "adjust transparency", FALSE),
+        checkboxInput("adjust_alpha", "Adjust transparency", FALSE),
         conditionalPanel(
           condition = "input.adjust_alpha == true",
           numericInput("alpha_fill", "set alpha fill:", value = 0.5, min = 0.0, max = 1.0, step = 0.1),
           selectInput("outline", "choose outline style:", choice = c("color", "white", "black"))
         ),
         
-        numericInput("text_size", "text size", value = 12, min = 4, max = 50, step = 1),
-        numericInput("marker_size", "marker size", value = 3, min = 1, max = 20, step = 1),
+        numericInput("text_size", "Text size", value = 12, min = 4, max = 50, step = 1),
+        numericInput("marker_size", "Marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
-        #selectInput("dataset", "Choose a dataset:",
-        #  choices = c("statistics_file", "merged_plot_file", "multi_plot_file")
-        #),
-        # selectInput("image_file_format", "Choose image file format:",
-        #            choices = c(".pdf",".eps",".png")),
         downloadButton("downloadData", "Download statistics")
       ),
 
       # Show a plot of the generated distribution
       mainPanel(
         tabsetPanel(
-          #                    tabPanel("Table", tableOutput("merged_stack")),
           tabPanel(
             "Plot", downloadButton("downloadMultiPlotPDF", "Download pdf-file"),
             downloadButton("downloadMultiPlotEPS", "Download eps-file"),
             downloadButton("downloadMultiPlotSVG", "Download svg-file"),
             downloadButton("downloadMultiPlotPNG", "Download png-file"),
             div(`data-spy` = "affix", `data-offset-top` = "10", withSpinner(plotOutput("multi_dist_plot", height = "120%"))),
-            # textOutput("parameter_error"),
+            #textOutput("parameter_error"),
             NULL,
           ),
           tabPanel(
@@ -245,35 +233,23 @@ ui <- navbarPage(
             downloadButton("downloadMergedPlotSVG", "Download svg-file"),
             downloadButton("downloadMergedPlotPNG", "Download png-file"),
             div(`data-spy` = "affix", `data-offset-top` = "10", withSpinner(plotOutput("merged_plot", height = "120%"))),
-            textOutput("parameter_error"),
+            #textOutput("parameter_error"),
             NULL,
           ),
-          tabPanel("Statistics", tableOutput("merged_statistics"))
+          tabPanel("Statistics", tableOutput("summaryStatisticsTable"))
         )
       )
     )
   ),
 
-
-
-  ### Panel B: Correlation analysis
+  ### Panel C: Correlation analysis
 
   tabPanel(
     "Correlation analysis",
     sidebarLayout(
       sidebarPanel(
-        #                fileInput("correlationData", "Upload data file",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv",".xlsx")),
-        #                            tags$hr(),
-        #                checkboxInput("header_correlation", "File upload", TRUE),
         selectInput("feature_select_1", "Choose a feature:", choices = ""),
         selectInput("feature_select_2", "Choose a feature:", choices = ""),
-        # selectInput("feature_select_1", "Choose a feature 1:",
-        #            choices = c("organelle_orientation","major_axis_shape_orientation","major_axis_nucleus_orientation","eccentricity","mean_expression","area","perimeter")),
-        # selectInput("feature_select_2", "Choose a feature 2:",
-        #            choices = c("organelle_orientation","major_axis_shape_orientation","major_axis_nucleus_orientation","eccentricity","mean_expression","area","perimeter")),
         selectInput("datasetSingleImage", "Download:",
           choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
         ),
@@ -315,64 +291,39 @@ ui <- navbarPage(
             NULL,
           ),
           tabPanel("Statistics", tableOutput("correlation_statistics"))
-          # plotOutput("correlation_plot", height = "1000px")),#,
-          # tabPanel("Spoke Plot", plotOutput("spoke_plot", height = "1000px"))#,
-          # tabPanel("Statistics", tableOutput("singleImageStatistics"))
         )
       )
     )
   ),
 
-  ### Panel C: Comparison statistics
+
+  ### Panel D: Comparison statistics
 
   tabPanel(
     "Compare",
     sidebarLayout(
       sidebarPanel(
-        #                fileInput("control_condition", "Control condition",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv")),
-        #                tags$hr(),
-        #                checkboxInput("header_cond1", "File upload", TRUE),
-
-        #                fileInput("condition_2", "Condition 2",
-        #                            accept = c( "text/csv",
-        #                            "text/comma-separated-values,text/plain",
-        #                            ".csv")),
-        #                tags$hr(),
-        #                checkboxInput("header_cond2", "File upload", TRUE),
-        #                sliderInput("bins_comparison",
-        #                            "Number of bins:",
-        #                            min = 1,
-        #                            max = 30,
-        #                            value = 12),
-
 
         selectInput("control_condition", "control condition", choices = ""),
-        selectInput("feature_comparison", "Choose a feature:",
-          choices = c(
-            "organelle_orientation", "major_axis_shape_orientation",
-            "major_axis_nucleus_orientation", "eccentricity", "major_over_minor_ratio",
-            "mean_expression", "marker_polarity", "area", "perimeter"
-          )
-        ),
+        selectInput("feature_comparison", "Choose a feature:", choices = ""),
         checkboxInput("kde_comparison", "KDE plot", FALSE),
         checkboxInput("histogram_comparison", "Histogram plot", TRUE),
+        #TODO: check whether split view can be beneficial
         #                checkboxInput("split_view_comparison", "Split view", TRUE),
       ),
       mainPanel(
-        # tabPanel("Plot", plotOutput("comparison_plot", height = "1000px")),
         tabsetPanel(
+          #TODO: revise plotting options and add download
           tabPanel("Plot", plotOutput("comparison_plot", height = "1000px")),
           tabPanel("CDF Plot", plotOutput("CDFPlot")),
-          tabPanel("Statistics", tableOutput("comparison_statistics"))
+          tabPanel("Statistics", tableOutput("comparison_statistics")),
+          NULL
         )
       )
     )
   ),
 
-  ### Panel D: Terms of Use
+  ### Panel E: Terms of Use
 
   tabPanel(
     "Terms of Use",
@@ -388,12 +339,9 @@ ui <- navbarPage(
     )
   ),
   
-  ### Panel E: About
-  
+  ### Panel F: About
 
-  
   tabPanel("About", 
-           #imageOutput(img(src='collaboration_logo.png', alt = "supported by", width = 25, height = 25)), 
            includeHTML("About.html"),
            imageOutput("support_logo")
   )
@@ -403,77 +351,82 @@ ui <- navbarPage(
 # Define server logic
 server <- function(input, output, session) {
 
-  
-  output$support_logo <- renderImage({
-    # A temp file to save the output.
-    # This file will be removed later by renderImage
-    #outfile <- tempfile(fileext = '.png')
-    
-    # Generate the PNG
-    #png(outfile, width = 1825, height = 201)
-    
-    #hist(rnorm(input$obs), main = "Generated in renderImage()")
-    #dev.off()
-    
-    filename <- normalizePath(file.path('collaboration_logo_small.png'))
-    print("logo file name")
-    print(filename)
-    
-    # Return a list containing the filename
-    list(src = filename,
-         #width = 608, height = 67,
-         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
-         )
+  ### functions related to: Panel A, data preparation
+
+  data_upload <- reactive({
+    "
+    reactive function that reads a csv file or xls file and returns a data frame,
+    rows containing NA values are removed
+    "
+
+    inFileStackData <- input$stackData
+
+    if (input$data_upload_form == "example 1") {
+
+      data_df <- read.csv("example_1/example_1.csv", header = TRUE)
+
+    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data") & upload_enabled) {
+
+      data_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
+
+    } else {
+
+        data_df <- data.frame()
+
+    }
+
+    data_df <- na.omit(data_df)
+    data_df
   })
 
-  ### Panel A
-
   observe({
+    "
+    update choices for fields according to data frame columns:
+    "
+
     data <- data_upload()
     var_names <- colnames(data_upload())
-    print("var_names")
+
     print(var_names)
+
     if (length(var_names) > 0) {
       var_list <- c("none", var_names)
     } else {
-      print("var_name is not a list")
       var_list <- c("none")
     }
-    print("var_list")
-    print(var_list)
-    # }
- 
+
+    # set defaults
+    feature_select_default = "nuclei_golgi_rad"
+    if (feature_select_default %in% var_list) {
+      feature_select_default = feature_select_default
+    } else if ("cell_shape_orientation_rad" %in% var_list) {
+      feature_select_default = "cell_shape_orientation_rad"
+    } else {
+      feature_select_default = "none"
+    }
+
     #updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
-    updateSelectInput(session, "condition_col", choices = var_list, selected = "filename")
-    updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation")
-    updateSelectInput(session, "feature_select_1", choices = var_list, selected = "cell_shape_orientation")
-    updateSelectInput(session, "feature_select_2", choices = var_list, selected = "nuc_shape_orientation")
-    updateSelectInput(session, "feature_comparison", choices = var_list, selected = "nuclei_golgi_polarity")
+    updateSelectInput(session, "condition_col", choices = var_list, selected = "filename") # for Panel A
+    #updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
+    updateSelectInput(session, "feature_select", choices = var_list, selected = feature_select_default) # for Panel B
+    updateSelectInput(session, "feature_select_1", choices = var_list, selected = "cell_shape_orientation_rad") # for Panel C
+    updateSelectInput(session, "feature_select_2", choices = var_list, selected = "nuc_shape_orientation_rad") # for Panel C
+    updateSelectInput(session, "feature_comparison", choices = var_list, selected = feature_select_default) # for Panel D
     updateSelectInput(session, "filter_column", choices = var_list, selected="none")
 
-    #parameters <- fromJSON(file = "parameters/parameters.json")
-    #stats_mode <- parameters[input$feature_select][[1]][2]
-    #updateSelectInput(session, "plot_mode", choices = c("directional","undirectional","linear"), selected = stats_mode)
-
-
   })
-  
-  
+
   observeEvent(input$condition_col != 'none', {
-    
+    "
+    update list of conditions that can be removed by the user in Panel A
+    "
+
     data <- data_upload()
     var_names <- colnames(data_upload())
-    #data_ <- data %>% select(for_filterning = !!condition_col)
-    #condition_list <- levels(factor(data_$for_filterning))
     if (length(var_names) > 0) {
       if (input$condition_col %in% colnames(data)) {
         print(input$condition_col)
-        #condition_list <- unlist(unique(data[input$condition_col]))
         condition_list <- unique(data[input$condition_col])
-        #data_ <- data %>% select(for_filtering = !!input$condition_col)
-        #condition_list <- levels(factor(data_$for_filtering))
-  
-        print(condition_list)
         updateSelectInput(session, "remove_these_conditions", choices = condition_list)
       }
     }
@@ -481,68 +434,42 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$feature_select != 'none', {
+    "
+    select data modality directional circular data, undirectional circular data or linear (non-circular) data,
+    auto select if present in parameter file
+    "
+
     parameters <- fromJSON(file = "parameters/parameters.json")
     if (input$feature_select %in% names(parameters)) {
-
       stats_mode <- parameters[input$feature_select][[1]][2]
-      updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
-
+      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
     } else {
-      updateSelectInput(session, "plot_mode", choices = c("directional", "undirectional", "linear"), selected = "directional")
+      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = "linear")
     }
   })
-  
 
-  data_upload <- reactive({
-    "
-    reactive function that reads all csv files 
-    from the directory given in stack_data_info$datapath 
-    and combines them into one data frame
-    "
+  data_filtered <- reactive({
+    df_filtered <- data_upload() 
 
-    inFileStackData <- input$stackData
-
-    if (input$data_upload_form == "example 1") {
-
-      results_all_df <- read.csv("example_1/example_1.csv", header = TRUE)
-
-    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data") & upload_enabled) {
-
-      results_all_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
-
-    } else {
-
-        results_all_df <- data.frame()
-
-    }
-
-
-
-
+    #if subsampling data is selected, only every n-th row is kept
     if (input$subsample_data) {
-      N <- nrow(results_all_df) %/% input$subsample_n
-      if (nrow(results_all_df) > N) {
-        results_all_df <- results_all_df[sample(nrow(results_all_df), N), ]
+      N <- nrow(df_filtered) %/% input$subsample_n
+      if (nrow(df_filtered) > N) {
+        df_filtered <- df_filtered[sample(nrow(df_filtered), N), ]
       }
     }
 
-    results_all_df <- na.omit(results_all_df)
-    results_all_df
-  })
-  
-  
-  data_filtered <- reactive({
-    df_filtered <- data_upload() 
-    #### filter data
+    ### filter out selected conditions (categorial)
     if ( !is.null(input$remove_these_conditions) && (input$condition_col != "none"))
     {
       condition_column <- input$condition_col
       remove_these_conditions <- input$remove_these_conditions
-      print("remove these considions")
-      observe({print(remove_these_conditions )})
+      #print("remove these considions:")
+      #observe({print(remove_these_conditions )})
       df_filtered <- df_filtered %>% filter(!.data[[condition_column[[1]]]] %in% !!remove_these_conditions)
     }
-    
+
+    # remove samples that are outside of the specified value range
     if ( (input$filter_data == TRUE) && (input$filter_column != "none")) {
       df_filtered <- df_filtered[df_filtered[input$filter_column] > input$min_value, ]
       df_filtered <- df_filtered[df_filtered[input$filter_column] < input$max_value, ]
@@ -552,252 +479,86 @@ server <- function(input, output, session) {
   })
 
 
-  output$terms_of_use_text <- renderText({
+  output$data_table <- renderTable({
     "
-    function that the merged stack of polarity data and angles in table format
+    function that prints data in Panel A
     "
 
     if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      if ( !upload_enabled ) {
-        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
-      } else {
-        includeHTML("Terms-of-Use.html")
-      }
 
-    } else {
-
-    }
-  })
-
-  output$terms_of_use_text_all <- renderText({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-    includeHTML("Terms-of-Use.html")
-  })
-
-
-  output$merged_stack <- renderTable({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      # data.frame( "Info" = c("Dear user, data upload is currently not possible in the online version.",
-      #                       "Please download the Rshiny app from \n and run locally."))
     } else {
       data_filtered()
     }
   })
 
+  output$downloadFilteredData <- downloadHandler(
+  #  "
+  #  download filtered data displayed in Panel A
+  #  "
 
-  mergedStatistics <- reactive({
+    filename = function() {
+      filename <- "data_filtered.csv"
+      return(filename)
+    },
+    content = function(file) {
+      return(write.csv(data_filtered(), file, row.names = FALSE))
+    }
+  )
+
+  #####################################################
+  ### functions related to: Panel B, data visualization
+  #####################################################
+
+  summaryStatistics <- reactive({
     "
     reactive function that reads a stack of spreadsheet and returns a data frame 
-    with descriptive statistics including circular mean, circular standard deviation 
-    and nearest neighbours for the merged stack of data
-
-    TODO: rework threhsolding
-
+    with descriptive statistics depending on the selected data modality directional, undirectional or linear
     "
 
-    results_df <- data_filtered()
-
-
-    print("Data Frame in merged statistics:")
-    print(head(results_df))
+    data_df <- data_filtered()
 
     source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     parameters <- fromJSON(file = "parameters/parameters.json")
 
     condition_col <- input$condition_col
-    condition_list <- unlist(unique(results_df[condition_col]))
+    condition_list <- unlist(unique(data_df[condition_col]))
 
-    feature <- parameters[input$feature_select][[1]][1]
+    feature <- input$feature_select
+    if (feature %in% names(parameters)) {
+      feature <- parameters[input$feature_select][[1]][1]
+    }
 
-    #    threshold <- input$min_nuclei_golgi_dist
-    #    if ("organelle_distance" %in% colnames(results_df)){
-    #      results_df <- subset(results_df, results_df$distance > threshold)
-    #    }
-
-    statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = 0))
     cols <- c("statistical measure")
     for (condition in condition_list) {
       cols <- c(cols, condition)
     }
-    #cols <- c(cols, "description")
+    cols <- c(cols, "all (merged)")
 
+    statistics <- compute_statistics(data_df, feature, parameters)
+    t_statistics = t(statistics)
+    statistics_df <- as.data.frame(matrix(ncol = length(condition_list) + 2, nrow = nrow(t_statistics)))
+    colnames(statistics_df) <- cols
+    statistics_df[,"statistical measure"] <- rownames(t_statistics)
+    statistics_df[,"all (merged)"] <- t_statistics[,1]
 
-    colnames(statistics_df) <- cols # c("entity", "value") #, "comment")
-
-    print("Colnames")
-    print(colnames(statistics_df))
-    # print("Feature property")
-    # print(parameters[input$feature_select][[1]][2])
-    #if (parameters[input$feature_select][[1]][2] == "directional") {
-    if (input$plot_mode == "directional") {
-      for (condition in condition_list) {
-        #condition_data <- subset(results_df, results_df[condition_col] == condition)
-        condition_data <- results_df[results_df[condition_col] == condition,]
-
-        print("Condition subset: ")
-        print(head(condition_data))
-
-        x_data <- unlist(condition_data[feature]) * 180.0 / pi
-        statistics <- compute_circular_statistics(condition_data, feature, parameters)
-        print("Statistics")
-        print(statistics)
-
-        p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
-        # if (statistics[1,"rayleigh_test"] < 0.001)
-        #    p_value <- "p < 0.001"
-        p_value_mu <- signif(statistics[1, "v_test"], digits = 3)
-        # if (statistics[1,"rayleigh_test_mu"] < 0.001)
-        #    p_value_mu <- "p < 0.001"
-        ind <- 1
-        statistics_df[ind, 1] <- "number of cells"
-        statistics_df[ind, condition] <- nrow(condition_data)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "mean (degree)"
-        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "polarity index"
-        statistics_df[ind, condition] <- signif(statistics[1, "polarity_index"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "signed polarity index (mean = 180)"
-        statistics_df[ind, condition] <- signif(statistics[1, "signed_polarity_index"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "angular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_angular"], digits = 3)
-        # statistics_df[ind,3] <- "angular standard deviation, takes values in [0,sqrt(2)], see https://doi.org/10.18637/jss.v031.i10 for more info."
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "circular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_circular"], digits = 3)
-        # statistics_df[ind,3] <- "circular standard deviation, takes values in [0,inf], see https://doi.org/10.18637/jss.v031.i10 for more info."
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, lower limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_lower_limit"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, upper limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_upper_limit"], digits = 3)
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "Rayleigh test, p-value:"
-        statistics_df[ind, condition] <- p_value
-
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "V-test p-value (cond. mean = 180): "
-        statistics_df[ind, condition] <- p_value_mu
-      }
-    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
-    } else if (input$plot_mode == "undirectional") {
-      for (condition in condition_list) {
-        print("Condition")
-        print(condition)
-        #print(condition_col)
-
-        #print(head(results_df))
-
-        #condition_data <- subset(results_df, results_df[condition_col] == condition)
-        condition_data <- results_df[results_df[condition_col] == condition,]
-        print("Condition subset: ")
-        print(head(condition_data))
-        
-        x_data <- unlist(condition_data[feature]) * 180.0 / pi
-        statistics <- compute_undirectional_statistics(condition_data, feature, parameters)
-        print("Statistics")
-        print(statistics)
-        
-        p_value <- signif(statistics[1, "rayleigh_test"], digits = 3)
-
-        ind <- 1
-        statistics_df[ind, 1] <- "number of cells"
-        statistics_df[ind, condition] <- nrow(condition_data)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "mean (degree)"
-        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "polarity index"
-        statistics_df[ind, condition] <- signif(statistics[1, "polarity_index"], digits = 3)
-        
-        #ind <- ind + 1
-        #statistics_df[ind, 1] <- "signed polarity index (mean = 180)"
-        #statistics_df[ind, condition] <- signif(statistics[1, "signed_polarity_index"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "angular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_angular"], digits = 3)
-        # statistics_df[ind,3] <- "angular standard deviation, takes values in [0,sqrt(2)], see https://doi.org/10.18637/jss.v031.i10 for more info."
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "circular standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std_circular"], digits = 3)
-        # statistics_df[ind,3] <- "circular standard deviation, takes values in [0,inf], see https://doi.org/10.18637/jss.v031.i10 for more info."
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, lower limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_lower_limit"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "95% confidence interval of the mean, upper limit: "
-        statistics_df[ind, condition] <- signif(statistics[1, "ci_95_upper_limit"], digits = 3)
-        
-        ind <- ind + 1
-        statistics_df[ind, 1] <- "Rayleigh test, p-value:"
-        statistics_df[ind, condition] <- p_value
-        
-      }
-      
-    } else {
-
-      for (condition in condition_list) {
-        condition_data <- results_df[results_df[condition_col] == condition,]
-
-        statistics <- compute_linear_statistics(results_df, feature, parameters)
-
-        ind <- 1
-        statistics_df[ind, 1] <- "cells"
-        statistics_df[ind, condition] <- nrow(results_df)
-        ind <- ind + 1
-
-        statistics_df[ind, 1] <- "mean"
-        statistics_df[ind, condition] <- signif(statistics[1, "mean"], digits = 3)
-        ind <- ind + 1
-
-        statistics_df[ind, 1] <- "standard deviation"
-        statistics_df[ind, condition] <- signif(statistics[1, "std"], digits = 3)
-        ind <- ind + 1
-
-        statistics_df[ind, 1] <- "median"
-        statistics_df[ind, condition] <- signif(statistics[1, "median"], digits = 3)
-        ind <- ind + 1
-
-
-      }
-
+    for (condition in condition_list) {
+      condition_data <- data_df[data_df[condition_col] == condition,]
+      x_data <- unlist(condition_data[feature]) * 180.0 / pi
+      statistics <- compute_statistics(condition_data, feature, parameters)
+      t_statistics = t(statistics)
+      statistics_df[,condition] <- t_statistics[,1]
     }
 
     statistics_df
   })
 
-  output$merged_statistics <- renderTable(
-    {
-      "
+  output$summaryStatisticsTable <- renderTable(    {
+     "
     function that shows the descriptive statistics of the merged data stack in table format
     "
-
-      statistics_df <- mergedStatistics()
+      statistics_df <- summaryStatistics()
       statistics_df
-    },
-    digits = 3
+    }#, digits = 3
   )
 
   merged_plot <- reactive({
@@ -813,26 +574,17 @@ server <- function(input, output, session) {
     exp_condition <- input$exp_condition
     feature <- parameters[input$feature_select][[1]][1]
 
-    #if (parameters[input$feature_select][[1]][2] == "directional") {
-    if (input$plot_mode == "directional") {
-
-      print("directional feature!")
-
+    if (input$stats_mode == "directional") {
 
       x_data <- unlist(results_all_df[feature]) * 180.0 / pi
-      statistics <- compute_circular_statistics(results_all_df, feature, parameters)
+      statistics <- compute_directional_statistics(results_all_df, feature, parameters)
       plot_title <- parameters[input$feature_select][[1]][3]
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
-    #} else if (parameters[input$feature_select][[1]][2] == "undirectional") {
-    } else if (input$plot_mode == "undirectional") {
+
+    } else if (input$stats_mode == "undirectional") {
 
       x_data <- results_all_df[feature]
       statistics <- compute_undirectional_statistics(results_all_df, feature, parameters)
-      # if (input$left_directional) {
-      #  x_data <- unlist(transform_undirectional(input,x_data))*180.0/pi
-      # } else {
-      #  x_data <- unlist(results_all_df[feature])*180.0/pi
-      # }
       x_data <- unlist(transform_undirectional(input, x_data)) * 180.0 / pi
 
       plot_title <- parameters[input$feature_select][[1]][3]
@@ -856,54 +608,36 @@ server <- function(input, output, session) {
   
   output$merged_plot <- renderPlot(width = width_A, height = height_A, {
     parameters <- fromJSON(file = "parameters/parameters.json")
-    # parameters[input$feature_select][[1]][1]
 
-    if (input$feature_select %in% names(parameters)) {
-      p <- merged_plot()
-      p
-    } else {
-
-    }
-
-    # if (input$feature_select == "filename") {
+    #if (input$feature_select %in% names(parameters)) {
+    p <- merged_plot()
+    p
+    #} else {
     #
-    #        }
-    #        else {
-    #            p <-merged_plot()
-    #            p
-    #        }
+    #}
   })
 
   output$parameter_error <- renderText({
     parameters <- fromJSON(file = "parameters/parameters.json")
-    # parameters[input$feature_select][[1]][1]
-    # if (input$feature_select == "filename") {
-    #    print("Plotting of this parameter is not supported.")
-    # }
-    # else {
-    #
-    # }
 
     if (input$feature_select %in% names(parameters)) {
 
     } else {
       print("Plotting of this parameter is not supported.")
     }
+
   })
 
-
   multi_plot <- reactive({
+    "
+    function that plots data for every condition in the selected column of the data frame
+    "
+
     source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
     source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
-
-    #datapath <- stack_data_info$datapath
-    #print(datapath)
-
-    #file_list <- list.files(datapath)
-    #print(file_list)
 
     i <- 1
     angle_dists <- list()
@@ -912,35 +646,21 @@ server <- function(input, output, session) {
     angle_mean_degs <- list()
 
     results_all_df <- data_filtered()
+    feature <- input$feature_select
+    if (feature %in% names(parameters)) {
+      feature <- parameters[input$feature_select][[1]][1]
+    }
 
-    #   for(row_nr in 1:nrow(results_all_df)) {
-    #       row <- results_all_df[row_nr,]
-    # a <- row$major_axis_length
-    # b <- row$minor_axis_length
-    #
-    # eccentricity <- sqrt(1.0 - b*b/(a*a))
-    # results_all_df[row_nr,"cell_eccentricity"] = eccentricity
-    # }
-
-    # threshold <- input$min_eccentricity
-    # if ("cell_eccentricity" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$eccentricity> threshold)
-    # }
-    # threshold <- input$min_nuclei_golgi_dist
-    # if ("orgenelle_distance" %in% colnames(results_all_df)){
-    #  results_all_df <- subset(results_all_df, results_all_df$distance > threshold)
-    # }
-
-    feature <- parameters[input$feature_select][[1]][1]
+    #feature <- parameters[input$feature_select][[1]][1]
     condition_col <- input$condition_col
 
     condition_list <- unlist(unique(results_all_df[condition_col]))
     # plist <- vector('list', length(unique(results_all_df$filename)))
-    plist <- vector("list", length(condition_list))
-    print("length of plot list")
-    print(plist)
-    print("list of unique entries")
-    print(unlist(unique(results_all_df[condition_col])))
+    #plist <- vector("list", length(condition_list))
+    #print("length of plot list")
+    #print(plist)
+    #print("list of unique entries")
+    #print(unlist(unique(results_all_df[condition_col])))
 
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
     # for(file_name in unique(results_all_df$filename)) {
@@ -948,34 +668,13 @@ server <- function(input, output, session) {
     for (file_name in condition_list) {
       results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
 
-      # values <- compute_polarity_index(results_df)
-
-
-      # print(values)
-      # polarity_index <- values[["polarity_index"]]
-      # angle_mean_deg <- values[["angle_mean_deg"]]
-
       x <- unlist(results_df[feature])
       angle_dists[[i]] <- x
 
-
-      # if (parameters[input$feature_select][[1]][2] == "linear") {
-      #
-      #    if (x_lim[0] > min(x))
-      #        x_lim[0] <- min(x)
-      #    if (x_lim[1] < max(x))
-      #        x_lim[1] <- max(x)
-      #
-      #       }
-
       file_names[[i]] <- file_name
 
-      # polarity_indices[[i]] <- polarity_index
-      # angle_mean_degs[[i]] <- angle_mean_deg
       i <- i + 1
     }
-
-
 
     n <- length(angle_dists)
     nCol <- floor(sqrt(n))
@@ -1005,14 +704,14 @@ server <- function(input, output, session) {
       # }
 
 
-      if (parameters[input$feature_select][[1]][2] == "directional") {
-        statistics <- compute_circular_statistics(results_df, feature, parameters)
+      if (input$stats_mode == "directional") {
+        statistics <- compute_directional_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+      } else if (input$stats_mode == "undirectional") {
         x_data <- results_df[feature]
         # print(x_data)
         statistics <- compute_undirectional_statistics(results_df, feature, parameters)
@@ -1029,6 +728,7 @@ server <- function(input, output, session) {
         # plot_title <- file_name
         # p <- linear_histogram(parameters, input, statistics, x_data,  plot_title, i, text_size, x_lim[0], x_lim[1])
         p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(results_all_df[feature]), max(results_all_df[feature]))
+        #p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(x_data), max(x_data))
       }
     }
 
@@ -1040,18 +740,14 @@ server <- function(input, output, session) {
   })
 
   output$multi_dist_plot <- renderPlot(width = width_A, height = height_A, {
-    multi_plot()
-  })
 
-  output$downloadFilteredData <- downloadHandler(
-    filename = function() {
-      filename <- "data_filtered.csv"
-      return(filename)
-    },
-    content = function(file) {
-      return(write.csv(data_filtered(), file, row.names = FALSE))
-    }
-  )
+    feature <- input$feature_select
+    #if (feature %in% colnames()) {
+        multi_plot()
+    #} else {
+    #    print("Please select a feature")
+    #}
+  })
 
   output$downloadData <- downloadHandler(
     filename = function() {
@@ -1062,7 +758,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
 
-      return(write.csv(mergedStatistics(), file, row.names = FALSE))
+      return(write.csv(summaryStatistics(), file, row.names = FALSE))
 
     }
   )
@@ -1174,7 +870,7 @@ server <- function(input, output, session) {
   )
 
 
-  ### Panel B
+  ### Panel C
 
   plot_correlation <- reactive({
     
@@ -1364,7 +1060,7 @@ server <- function(input, output, session) {
           
         }
       statistics_df
-      #statistics_df <- mergedStatistics()
+      #statistics_df <- summaryStatistics()
       #statistics_df
     },
     digits = 3
@@ -1754,14 +1450,14 @@ server <- function(input, output, session) {
       # }
 
 
-      if (parameters[input$feature_select][[1]][2] == "directional") {
-        statistics <- compute_circular_statistics(results_df, feature, parameters)
+      if (input$stats_mode == "directional") {
+        statistics <- compute_directional_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (parameters[input$feature_select][[1]][2] == "undirectional") {
+      } else if (input$stats_mode == "undirectional") {
         x_data <- results_df[feature]
         # print(x_data)
         statistics <- compute_undirectional_statistics(results_df, feature, parameters)
@@ -1934,6 +1630,50 @@ server <- function(input, output, session) {
 
     statistics_df <- comparisonStatistics()
     statistics_df
+  })
+
+  ### END OF COMPARISON TAB ###
+
+  ### Panel D: Terms of Use ###
+
+  output$terms_of_use_text <- renderText({
+    "
+    function that the merged stack of polarity data and angles in table format
+    "
+
+    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
+      if ( !upload_enabled ) {
+        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
+      } else {
+        includeHTML("Terms-of-Use.html")
+      }
+
+    } else {
+
+    }
+  })
+
+  output$terms_of_use_text_all <- renderText({
+    "
+    function that the merged stack of polarity data and angles in table format
+    "
+    includeHTML("Terms-of-Use.html")
+  })
+
+  ### Panel E: About ##
+
+  #' @returns logo, used for About panel
+  output$support_logo <- renderImage({
+
+    filename <- normalizePath(file.path('collaboration_logo_small.png'))
+    print("logo file name")
+    print(filename)
+
+    # Return a list containing the filename
+    list(src = filename,
+         #width = 608, height = 67,
+         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
+         )
   })
 }
 
