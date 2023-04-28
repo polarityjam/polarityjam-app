@@ -52,8 +52,8 @@ compute_statistics <- function(data, feature, stats_mode, parameters) {
 
   if (input$stats_mode == "directional") {
     statistics <- compute_directional_statistics(data, feature, parameters)
-  } else if (input$stats_mode == "undirectional") {
-    statistics <- compute_undirectional_statistics(data, feature, parameters)
+  } else if (input$stats_mode == "axial") {
+    statistics <- compute_axial_statistics(data, feature, parameters)
   } else {
     statistics <- compute_linear_statistics(data, feature, parameters)
   }
@@ -192,7 +192,7 @@ comparison_circular_statistics <- function(data_1, data_2, feature, parameters) 
 }
 
 
-compute_undirectional_statistics <- function(data, feature, parameters) {
+compute_axial_statistics <- function(data, feature, parameters) {
 
 
   p_directional_data <- unlist(data[feature])

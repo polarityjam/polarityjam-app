@@ -1,6 +1,6 @@
 { 
-    "cell_shape_orientation_rad": ["cell_shape_orientation_rad", "undirectional", "cell shape orientation"],
-    "cell_shape_orientation_deg": ["cell_shape_orientation_deg", "undirectional", "cell shape orientation"],
+    "cell_shape_orientation_rad": ["cell_shape_orientation_rad", "axial", "cell shape orientation"],
+    "cell_shape_orientation_deg": ["cell_shape_orientation_deg", "axial", "cell shape orientation"],
     "cell_major_axis_length": ["cell_major_axis_length", "linear", "cell major axis length"],
     "cell_minor_axis_length": ["cell_minor_axis_length", "linear", "cell minor axis length"],
     "cell_eccentricity": ["cell_eccentricity", "linear", "cell shape eccentricity"],
@@ -13,7 +13,8 @@
     "marker_centroid_orientation_deg": ["marker_centroid_orientation_rad", "axial", "marker polarity"],
     "marker_polarity_rad": ["marker_polarity_rad", "axial", "marker polarity"],
     "nuc_displacement_orientation_rad": ["nuc_displacement_orientation_rad", "directional", "nucleus displacement orientation"],
-    "nuc_shape_orientation": ["nuc_shape_orientation","undirectional", "nucleus shape orientation"],
+    "nuc_shape_orientation_rad": ["nuc_shape_orientation_rad","axial", "nucleus shape orientation"],
+    "nuc_shape_orientation_deg": ["nuc_shape_orientation_deg","axial", "nucleus shape orientation"],
     "nuc_major_axis_length": ["cell_major_axis_length", "linear", "cell major axis length"],
     "nuc_minor_axis_length": ["cell_minor_axis_length", "linear", "cell minor axis length"],
     "nuc_area": ["nuc_area", "linear", "nuclei area"],
@@ -48,7 +49,7 @@
     "cell_circularity": ["cell_circularity", "linear", "circularity (cell shape)"],
     "cell_shape_index": ["cell_shape_index", "linear", "cell shape index"],
     "nuc_circularity": ["nuc_circularity", "linear", "circularity (nuclei shape)"],
-    "cell_shape_orientation": ["cell_shape_orientation", "undirectional", "cell shape orientation"], 
+    "cell_shape_orientation": ["cell_shape_orientation", "axial", "cell shape orientation"],
     "nuclei_golgi_rad": ["nuclei_golgi_rad", "directional", "nuclei-golgi polarity"],
     "nuclei_golgi_deg": ["nuclei_golgi_deg", "directional", "nuclei-golgi polarity"]
 }
