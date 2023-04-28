@@ -83,9 +83,9 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
   print(mean_dir_1)
   print(mean_dir_2)
 
-  # center correlation plot either to  eitheir 0 or 
+  # center correlation plot either to  either 0 or
   # otherwise pi/2 (90 degrees) or pi (180 degrees) 
-  # for undirectional or directional features, respectively
+  # for axial or directional features, respectively
   
   if (input$center_corr_plot == TRUE) {
     if (mode_1 == "directional") {
@@ -97,7 +97,7 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
         }
         feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
       }
-    } else if (mode_1 == "undirectional") {
+    } else if (mode_1 == "axial") {
       if ((mean_dir_1 < pi / 4.0) | (mean_dir_1 > 3.0 * pi / 4.0)) {
         for (i in 1:length(feature_2_values)) {
           if (feature_1_values[i] > pi / 2.0) {
@@ -117,7 +117,7 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
         }
         feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
       }
-    } else if (mode_2 == "undirectional") {
+    } else if (mode_2 == "axial") {
       if ((mean_dir_2 < pi / 4.0) | (mean_dir_2 > 3.0 * pi / 4.0)) {
         for (i in 1:length(feature_2_values)) {
           if (feature_2_values[i] > pi / 2.0) {
@@ -215,13 +215,13 @@ compute_correlation <- function(feature_1_values, mode_1 = "directional", featur
   feature_1_values_ <- feature_1_values
   feature_2_values_ <- feature_2_values
 
-  if (mode_1 == "undirectional") {
+  if (mode_1 == "axial") {
     for (i in 1:length(feature_1_values)) {
       feature_1_values_[i] <- 2.0 * feature_1_values[i]
     }
   }
 
-  if (mode_2 == "undirectional") {
+  if (mode_2 == "axial") {
     for (i in 1:length(feature_2_values)) {
       feature_2_values_[i] <- 2.0 * feature_2_values[i]
     }

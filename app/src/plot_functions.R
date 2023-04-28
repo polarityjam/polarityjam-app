@@ -30,16 +30,16 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-transform_undirectional <- function(input, feature_undirectional) {
-  feature_undirectional <- unlist(feature_undirectional)
-  feature_transformed <- feature_undirectional
+transform_axial <- function(input, feature_axial) {
+  feature_axial <- unlist(feature_axial)
+  feature_transformed <- feature_axial
 
   if (input$hemi_rose_options == "left") {
-    for (i in 1:length(feature_undirectional)) {
-      if (feature_undirectional[i] < pi / 2.0) {
-        feature_transformed[i] <- feature_undirectional[i] + pi
+    for (i in 1:length(feature_axial)) {
+      if (feature_axial[i] < pi / 2.0) {
+        feature_transformed[i] <- feature_axial[i] + pi
       } else {
-        feature_transformed[i] <- feature_undirectional[i]
+        feature_transformed[i] <- feature_axial[i]
       }
     }
   }
@@ -291,7 +291,7 @@ compare_plot_circular <- function(parameters, input, statistics, feature_circula
 
 
 
-rose_plot_undirectional <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
+rose_plot_axial <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
   bin_size <- 360 / input$bins
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
@@ -474,7 +474,7 @@ rose_plot_undirectional <- function(parameters, input, statistics, feature_circu
   return(p)
 }
 
-compare_plot_undirectional <- function(parameters, input, statistics, feature_circular, plot_title, text_size = 24) {
+compare_plot_axial <- function(parameters, input, statistics, feature_circular, plot_title, text_size = 24) {
   bin_size <- 360 / input$bins
   # plot_title <- parameters[input$feature_select][[1]][3]
 
