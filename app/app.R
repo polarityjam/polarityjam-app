@@ -144,7 +144,7 @@ ui <- navbarPage(
       sidebarPanel(
         selectInput("feature_select", "Choose a feature:", choices = ""),
         selectInput("stats_mode", "Choose data modality:",
-          choices = c("directional", "undirectional", "linear"),
+          choices = c("directional", "axial", "linear"),
           selected = "directional"
         ),
         selectInput("stats_method", "Choose a stats test",
@@ -189,7 +189,7 @@ ui <- navbarPage(
 
 
         conditionalPanel(
-          condition = "input.stats_mode == 'undirectional'",
+          condition = "input.stats_mode == 'axial'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
             choices = c("mirrored", "up", "down", "left", "right")
           )
@@ -435,16 +435,16 @@ server <- function(input, output, session) {
 
   observeEvent(input$feature_select != 'none', {
     "
-    select data modality directional circular data, undirectional circular data or linear (non-circular) data,
+    select data modality directional circular data, axial circular data or linear (non-circular) data,
     auto select if present in parameter file
     "
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     if (input$feature_select %in% names(parameters)) {
       stats_mode <- parameters[input$feature_select][[1]][2]
-      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = stats_mode)
+      updateSelectInput(session, "stats_mode", choices = c("directional", "axial", "linear"), selected = stats_mode)
     } else {
-      updateSelectInput(session, "stats_mode", choices = c("directional", "undirectional", "linear"), selected = "linear")
+      updateSelectInput(session, "stats_mode", choices = c("directional", "axial", "linear"), selected = "linear")
     }
   })
 
@@ -512,7 +512,7 @@ server <- function(input, output, session) {
   summaryStatistics <- reactive({
     "
     reactive function that reads a stack of spreadsheet and returns a data frame 
-    with descriptive statistics depending on the selected data modality directional, undirectional or linear
+    with descriptive statistics depending on the selected data modality directional, axial or linear
     "
 
     data_df <- data_filtered()
@@ -581,14 +581,14 @@ server <- function(input, output, session) {
       plot_title <- parameters[input$feature_select][[1]][3]
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
 
-    } else if (input$stats_mode == "undirectional") {
+    } else if (input$stats_mode == "axial") {
 
       x_data <- results_all_df[feature]
-      statistics <- compute_undirectional_statistics(results_all_df, feature, parameters)
-      x_data <- unlist(transform_undirectional(input, x_data)) * 180.0 / pi
+      statistics <- compute_axial_statistics(results_all_df, feature, parameters)
+      x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
       plot_title <- parameters[input$feature_select][[1]][3]
-      p <- rose_plot_undirectional(parameters, input, statistics, x_data, plot_title, 0, text_size)
+      p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, 0, text_size)
     } else {
       x_data <- unlist(results_all_df[feature])
       statistics <- compute_linear_statistics(results_all_df, feature, parameters)
@@ -711,17 +711,17 @@ server <- function(input, output, session) {
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (input$stats_mode == "undirectional") {
+      } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
         # print(x_data)
-        statistics <- compute_undirectional_statistics(results_df, feature, parameters)
+        statistics <- compute_axial_statistics(results_df, feature, parameters)
         # if (input$left_directional) {
-        x_data <- unlist(transform_undirectional(input, x_data)) * 180.0 / pi
+        x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
         # } else {
         #  x_data <- unlist(results_df[feature])*180.0/pi
         # }
         # plot_title <- file_name
-        p <- rose_plot_undirectional(parameters, input, statistics, x_data, plot_title, i, text_size)
+        p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
         statistics <- compute_linear_statistics(results_df, feature, parameters)
@@ -1457,17 +1457,17 @@ server <- function(input, output, session) {
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
-      } else if (input$stats_mode == "undirectional") {
+      } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
         # print(x_data)
-        statistics <- compute_undirectional_statistics(results_df, feature, parameters)
+        statistics <- compute_axial_statistics(results_df, feature, parameters)
         # if (input$left_directional) {
-        x_data <- unlist(transform_undirectional(input, x_data)) * 180.0 / pi
+        x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
         # } else {
         #  x_data <- unlist(results_df[feature])*180.0/pi
         # }
         # plot_title <- file_name
-        p <- rose_plot_undirectional(parameters, input, statistics, x_data, plot_title, i, text_size)
+        p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
         statistics <- compute_linear_statistics(results_df, feature, parameters)
