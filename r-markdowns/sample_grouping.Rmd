@@ -1,0 +1,55 @@
+---
+title: "Grouping_Samples"
+author: "Wolfgang Giese"
+date: '2023-08-23'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r read_data}
+filepath <- "../test_data/stack_EC_microscopy/merged_table_no_transfection_18dyn_4h_BSA.csv"
+ec_features <- read.csv(file = filepath)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r create_new_data_frame, echo=FALSE}
+#default sample identifier should be index the index meaning each row
+sample_identifier <- "index"
+
+sample_identifier <- "filename"
+condition_identifier <- "none" # default
+#condition_identifier <- "condition"
+
+head(ec_features)
+unique(ec_features[sample_identifier])
+
+```
+
+
+```{r group_by, echo=FALSE}
+#default sample identifier should be index the index meaning each row
+#ec_features group_by()
+test <- ec_features %>% group_by("filename") %>% summarize(mean_cell_area = mean("cell_area", na.rm = TRUE))
+head(test)
+
+
+  #  group_by(filename) %>%
+#  summarize(mean_cell_area = mean(cell_area, na.rm = TRUE))
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
