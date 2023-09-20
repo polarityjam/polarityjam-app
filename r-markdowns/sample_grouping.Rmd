@@ -35,7 +35,27 @@ condition_identifier <- "none" # default
 #condition_identifier <- "condition"
 
 head(ec_features)
-unique(ec_features[sample_identifier])
+sample_identifier_list <- unique(ec_features[sample_identifier])
+
+df <- data.frame(sample_identifier = unique(ec_features[sample_identifier]) )
+
+#df$Spalte1 <- c()
+#df$Spalte2 <- c()
+#colnames(df) <- c("Spalte1", "Spalte2")
+
+n <- length(sample_identifier_list)
+# Optional: Anzahl der Zeilen festlegen
+#df <- df[1:n, ]
+
+feature <- "cell_area"
+mean_list = c()
+
+for(i in 1:n) {       # for-loop over columns
+  ec_features_sub = subset(ec_features, sample_identifier == sample_identifier_list[i])
+  #print(mean(ec_features_sub[feature]))
+}
+
+print(df)
 
 ```
 
@@ -45,6 +65,7 @@ unique(ec_features[sample_identifier])
 #ec_features group_by()
 test <- ec_features %>% group_by("filename") %>% summarize(mean_cell_area = mean("cell_area", na.rm = TRUE))
 head(test)
+
 
 
   #  group_by(filename) %>%
