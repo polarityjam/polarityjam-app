@@ -35,7 +35,7 @@ condition_identifier <- "none" # default
 #condition_identifier <- "condition"
 
 head(ec_features)
-sample_identifier_list <- unique(ec_features[sample_identifier])
+sample_identifier_list <- unlist(unique(ec_features[sample_identifier]))
 
 df <- data.frame(sample_identifier = unique(ec_features[sample_identifier]) )
 
@@ -51,8 +51,10 @@ feature <- "cell_area"
 mean_list = c()
 
 for(i in 1:n) {       # for-loop over columns
-  ec_features_sub = subset(ec_features, sample_identifier == sample_identifier_list[i])
-  #print(mean(ec_features_sub[feature]))
+  print(sample_identifier_list[i])
+  ec_features_sub = subset(ec_features, ec_features[sample_identifier] == sample_identifier_list[i])
+  #ec_features_sub = subset(ec_features, filename == sample_identifier_list[i])
+  print(head(ec_features_sub))
 }
 
 print(df)
