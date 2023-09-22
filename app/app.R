@@ -124,6 +124,12 @@ ui <- navbarPage(
           numericInput("min_value", "Set minimum value:", value = 0.0)
         ),
         
+        checkboxInput("group_samples", "Set identifier for samples", FALSE),
+        conditionalPanel(
+          condition = "input.group_samples == true",
+          selectInput("sample_col", "Identifier of samples", choices = ""),
+        ),
+        
         downloadButton("downloadFilteredData", "Download filtered data")
       ),
 
@@ -164,6 +170,7 @@ ui <- navbarPage(
         checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
         checkboxInput("scatter_plot", "Scatter plot", TRUE),
         checkboxInput("histogram_plot", "Histogram plot", TRUE),
+        checkboxInput("kde_plot", "KDE plot", FALSE),
         conditionalPanel(
           condition = "input.histogram_plot == true",
           sliderInput("bins",
@@ -184,8 +191,16 @@ ui <- navbarPage(
             )
           )
         ),
-
-        checkboxInput("kde_plot", "KDE plot", FALSE),
+        checkboxInput("compute_v_mean", "Compute V-score", FALSE),
+        conditionalPanel(
+          condition = "input.compute_v_mean == true",
+          sliderInput("bins",
+                      "Number of bins:",
+                      min = 0,
+                      max = 360,
+                      value = 180
+          ),
+        ),
 
 
         conditionalPanel(
@@ -405,7 +420,7 @@ server <- function(input, output, session) {
       feature_select_default = "none"
     }
 
-    #updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
+    updateSelectInput(session, "sample_col", choices = var_list, selected = "label")
     updateSelectInput(session, "condition_col", choices = var_list, selected = "filename") # for Panel A
     #updateSelectInput(session, "feature_select", choices = var_list, selected = "cell_shape_orientation_rad")
     updateSelectInput(session, "feature_select", choices = var_list, selected = feature_select_default) # for Panel B
