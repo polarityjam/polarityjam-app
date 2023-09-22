@@ -27,6 +27,9 @@ ec_features <- read.csv(file = filepath)
 You can also embed plots, for example:
 
 ```{r create_new_data_frame, echo=FALSE}
+
+source(file = "../app/src/circular_statistics.R", local = T)
+
 #default sample identifier should be index the index meaning each row
 sample_identifier <- "index"
 
@@ -37,7 +40,7 @@ condition_identifier <- "none" # default
 head(ec_features)
 sample_identifier_list <- unlist(unique(ec_features[sample_identifier]))
 
-df <- data.frame(sample_identifier = unique(ec_features[sample_identifier]) )
+ec_features_sample_group <- data.frame(sample_identifier = unique(ec_features[sample_identifier]) )
 
 #df$Spalte1 <- c()
 #df$Spalte2 <- c()
@@ -47,17 +50,42 @@ n <- length(sample_identifier_list)
 # Optional: Anzahl der Zeilen festlegen
 #df <- df[1:n, ]
 
-feature <- "cell_area"
+#feature <- "area"
+#stats_mode <- "linear"
+
+feature <- "angle_rad" 
+stats_mode <- "directional"
+
+#feature <- "shape_orientation"
+#stats_mode <- "axial"
+
 mean_list = c()
+
+#str(ec_features)
 
 for(i in 1:n) {       # for-loop over columns
   print(sample_identifier_list[i])
   ec_features_sub = subset(ec_features, ec_features[sample_identifier] == sample_identifier_list[i])
   #ec_features_sub = subset(ec_features, filename == sample_identifier_list[i])
-  print(head(ec_features_sub))
+  #print(head(ec_features_sub))
+  #print(str(ec_features_sub[feature]))
+  
+  mean_list =  append(mean_list, compute_mean(unlist(ec_features_sub[feature]),stats_mode))
+  #if (stats_mode == "directional") {
+  #  mean_list =  append(mean_list, compute_circular_mean(unlist(ec_features_sub[feature])))
+  #} else if (stats_mode == "axial") {
+  #  mean_value <- compute_circular_mean(unlist(ec_features_sub[feature])
+  #                                      
+  #  mean_list =  append(mean_list, mean(unlist(ec_features_sub[feature])))
+  #} else if (stats_mode == "linear") {
+  #  mean_list =  append(mean_list, mean(unlist(ec_features_sub[feature])))
+  #}
+  #print(ec_features_sub[feature])
 }
 
-print(df)
+ec_features_sample_group[feature] = mean_list
+
+print(ec_features_sample_group)
 
 ```
 

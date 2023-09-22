@@ -30,23 +30,33 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-compute_circular_mean <- function(circular_data) {
-  sin_sum <- 0.0
-  cos_sum <- 0.0
+compute_mean <- function(data, stats_mode) {
 
-  for (i in 1:length(circular_data)) {
-    angle <- circular_data[i]
-    sin_sum <- sin_sum + sin(angle)
-    cos_sum <- cos_sum + cos(angle)
+  
+  if (stats_mode == "linear") {
+    return(mean(data))
+  } else {
+    sin_sum <- 0.0
+    cos_sum <- 0.0
+    p_mode <- 1
+    
+    if (stats_mode == "axial") {
+      p_mode <- 2
+    }
+    for (i in 1:length(data)) {
+      angle <- p_mode*data[i]
+      sin_sum <- sin_sum + sin(angle)
+      cos_sum <- cos_sum + cos(angle)
+    }
+    sin_mean <- sin_sum / length(data)
+    cos_mean <- cos_sum / length(data)
+    
+    angle_mean_rad <- atan2(sin_mean, cos_mean)/p_mode
+    
+    return(angle_mean_rad)
   }
-
-  sin_mean <- sin_sum / length(circular_data)
-  cos_mean <- cos_sum / length(circular_data)
-
-  angle_mean_rad <- atan2(sin_mean, cos_mean)
-
-  return(angle_mean_rad)
 }
+
 
 compute_statistics <- function(data, feature, stats_mode, parameters) {
 
