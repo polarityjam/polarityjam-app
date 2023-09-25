@@ -263,8 +263,16 @@ ui <- navbarPage(
     "Correlation analysis",
     sidebarLayout(
       sidebarPanel(
-        selectInput("feature_select_1", "Choose a feature:", choices = ""),
-        selectInput("feature_select_2", "Choose a feature:", choices = ""),
+        selectInput("feature_select_1", "Choose feature 1 (x-axis):", choices = ""),
+        selectInput("stats_mode_1", "Data modality feature 1:",
+                    choices = c("directional", "axial", "linear"),
+                    selected = "directional"
+        ),
+        selectInput("feature_select_2", "Choose feature 2 (y-axis):", choices = ""),
+        selectInput("stats_mode_2", "Data modality feature 2:",
+                    choices = c("directional", "axial", "linear"),
+                    selected = "directional"
+        ),
         selectInput("datasetSingleImage", "Download:",
           choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
         ),
@@ -886,6 +894,36 @@ server <- function(input, output, session) {
 
 
   ### Panel C
+  
+  observeEvent(input$feature_select_1 != 'none', {
+    "
+    select data modality directional circular data, axial circular data or linear (non-circular) data,
+    auto select if present in parameter file
+    "
+    
+    parameters <- fromJSON(file = "parameters/parameters.json")
+    if (input$feature_select_1 %in% names(parameters)) {
+      stats_mode_1 <- parameters[input$feature_select_1][[1]][2]
+      updateSelectInput(session, "stats_mode_1", choices = c("directional", "axial", "linear"), selected = stats_mode_1)
+    } else {
+      updateSelectInput(session, "stats_mode_1", choices = c("directional", "axial", "linear"), selected = "linear")
+    }
+  })
+  
+  observeEvent(input$feature_select_2 != 'none', {
+    "
+    select data modality directional circular data, axial circular data or linear (non-circular) data,
+    auto select if present in parameter file
+    "
+    
+    parameters <- fromJSON(file = "parameters/parameters.json")
+    if (input$feature_select_2 %in% names(parameters)) {
+      stats_mode_2 <- parameters[input$feature_select_2][[1]][2]
+      updateSelectInput(session, "stats_mode_2", choices = c("directional", "axial", "linear"), selected = stats_mode_2)
+    } else {
+      updateSelectInput(session, "stats_mode_2", choices = c("directional", "axial", "linear"), selected = "linear")
+    }
+  })
 
   plot_correlation <- reactive({
     
