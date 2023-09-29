@@ -135,7 +135,8 @@ ui <- navbarPage(
 
       mainPanel(
         tabsetPanel(
-          tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("data_table"))
+          tabPanel("Data", htmlOutput("terms_of_use_text"), tableOutput("data_table")),
+          tabPanel("Processed Data", tableOutput("data_processed_table"))
         )
       )
     )
@@ -460,6 +461,8 @@ server <- function(input, output, session) {
   data_filtered <- reactive({
     df_filtered <- data_upload() 
 
+    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    
     #if subsampling data is selected, only every n-th row is kept
     if (input$subsample_data) {
       N <- nrow(df_filtered) %/% input$subsample_n
@@ -486,6 +489,58 @@ server <- function(input, output, session) {
     
     df_filtered
   })
+  
+  data_processed <- reactive({
+    df_processed  <- NULL
+    data <- data_filtered()
+    
+    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    
+    if (input$group_samples == TRUE) {
+      
+      col_names <- colnames(data_filtered())
+        
+      if ( (input$condition_col %in% col_names) & (input$sample_col %in% col_names) ) {
+        if ( (input$feature_select %in% col_names) & (input$feature_select_1 %in% col_names) & (input$feature_select_2 %in% col_names)) {
+            
+          df_processed <- data.frame(matrix(nrow = 0, ncol = 5))
+          colnames(df_processed) <- c("sample_col", input$feature_select)  
+          
+          df_col_select <- data[c(input$condition_col, input$sample_col, input$feature_select, input$feature_select_1, input$feature_select_2)]
+          
+          condition_list <- unlist(unique(df_col_select[input$condition_col]))
+          
+          for (condition in condition_list) {
+            df_single_cond <- subset(df_col_select, df_col_select[input$condition_col] == condition)
+            sample_identifier_list <- unlist(unique(df_single_cond[input$sample_col]))
+            num_samples <- length(sample_identifier_list)
+          #  
+            mean_list = c()
+            
+            for(i in 1:num_samples) {       # for-loop over columns
+              df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
+              mean_list =  append(mean_list, compute_mean(unlist(df_sample[input$feature_select]),input$stats_mode))
+
+            }
+  #          print(mean_list)
+   #         
+            
+            df_mean <- data.frame("sample_col" = sample_identifier_list ) #unique(df_single_cond[input$sample_col]) )
+            df_mean[input$feature_select] = mean_list
+            
+            
+            
+          }
+          
+        }
+      }
+      
+    } else {
+      df_processed <- data_filtered()
+    }
+    
+    df_processed 
+  })
 
 
   output$data_table <- renderTable({
@@ -496,7 +551,19 @@ server <- function(input, output, session) {
     if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
 
     } else {
-      data_filtered()
+      data_upload()
+    }
+  })
+  
+  output$data_processed_table <- renderTable({
+    "
+    function that prints filtered data in Panel A
+    "
+    
+    if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
+      
+    } else {
+      data_processed()
     }
   })
 
