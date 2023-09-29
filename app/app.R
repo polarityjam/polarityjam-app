@@ -504,29 +504,49 @@ server <- function(input, output, session) {
         if ( (input$feature_select %in% col_names) & (input$feature_select_1 %in% col_names) & (input$feature_select_2 %in% col_names)) {
             
           df_processed <- data.frame(matrix(nrow = 0, ncol = 5))
-          colnames(df_processed) <- c("sample_col", input$feature_select)  
+          colnames(df_processed) <- c(input$condition_col, input$sample_col, input$feature_select,  input$feature_select_1,  input$feature_select_2)  
           
           df_col_select <- data[c(input$condition_col, input$sample_col, input$feature_select, input$feature_select_1, input$feature_select_2)]
           
           condition_list <- unlist(unique(df_col_select[input$condition_col]))
           
           for (condition in condition_list) {
-            df_single_cond <- subset(df_col_select, df_col_select[input$condition_col] == condition)
+            df_single_cond  <- df_col_select[df_col_select[input$condition_col] == condition,]
+            print(tail(df_single_cond))
+            print(nrow(df_single_cond))
+            print(nrow(df_col_select))
+            
+            
             sample_identifier_list <- unlist(unique(df_single_cond[input$sample_col]))
             num_samples <- length(sample_identifier_list)
-          #  
+            print("Condition:")
+            print(condition)
+            print(num_samples)
+            
             mean_list = c()
+            mean_list_1 = c()
+            mean_list_2 = c()
             
             for(i in 1:num_samples) {       # for-loop over columns
               df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
               mean_list =  append(mean_list, compute_mean(unlist(df_sample[input$feature_select]),input$stats_mode))
+              mean_list_1 =  append(mean_list_1, compute_mean(unlist(df_sample[input$feature_select_1]),input$stats_mode_1))
+              mean_list_2 =  append(mean_list_2, compute_mean(unlist(df_sample[input$feature_select_2]),input$stats_mode_2))
 
             }
-  #          print(mean_list)
+            print(mean_list)
    #         
-            
-            df_mean <- data.frame("sample_col" = sample_identifier_list ) #unique(df_single_cond[input$sample_col]) )
+            df_mean <- data.frame(matrix(nrow = num_samples, ncol = 5))
+            colnames(df_mean) <- colnames(df_processed)
+            #df_mean <- data.frame("sample_col" = sample_identifier_list) 
+            #colnames(df_mean) <- c(input$sample_col) #unique(df_single_cond[input$sample_col]) )
+            df_mean[input$condition_col] = condition
+            df_mean[input$sample_col] = sample_identifier_list
             df_mean[input$feature_select] = mean_list
+            df_mean[input$feature_select_1] = mean_list_1
+            df_mean[input$feature_select_2] = mean_list_2
+            df_processed <- rbind(df_processed, df_mean)
+            
             
             
             
@@ -644,8 +664,9 @@ server <- function(input, output, session) {
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
 
-    results_all_df <- data_filtered()
-
+    #results_all_df <- data_filtered()
+    results_all_df <- data_processed()
+    
     bin_size <- 360 / input$bins
     exp_condition <- input$exp_condition
     feature <- parameters[input$feature_select][[1]][1]
@@ -722,6 +743,8 @@ server <- function(input, output, session) {
     angle_mean_degs <- list()
 
     results_all_df <- data_filtered()
+    #results_all_df <- data_processed()
+    
     feature <- input$feature_select
     if (feature %in% names(parameters)) {
       feature <- parameters[input$feature_select][[1]][1]

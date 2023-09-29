@@ -95,12 +95,6 @@ print(ec_features_sample_group)
 #ec_features group_by()
 test <- ec_features %>% group_by("filename") %>% summarize(mean_cell_area = mean("cell_area", na.rm = TRUE))
 head(test)
-
-
-
-  #  group_by(filename) %>%
-#  summarize(mean_cell_area = mean(cell_area, na.rm = TRUE))
-
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
