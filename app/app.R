@@ -159,14 +159,6 @@ ui <- navbarPage(
         #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
         #),
-        conditionalPanel(
-          condition = "input.stats_method == 'V-Test'",
-          numericInput("cond_mean_direction",
-            "Conditional mean direction",
-            value = 180
-          ),
-          NULL
-        ),
         checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
         checkboxInput("scatter_plot", "Scatter plot", TRUE),
         checkboxInput("histogram_plot", "Histogram plot", TRUE),
@@ -191,16 +183,10 @@ ui <- navbarPage(
             )
           )
         ),
-        checkboxInput("compute_v_mean", "Compute V-score", FALSE),
-        conditionalPanel(
-          condition = "input.compute_v_mean == true",
-          sliderInput("bins",
-                      "Number of bins:",
-                      min = 0,
-                      max = 360,
+        numericInput("cond_mean_direction",
+                      "Reference direction for V-test and V-score",
                       value = 180
-          ),
-        ),
+                    ),
 
 
         conditionalPanel(
