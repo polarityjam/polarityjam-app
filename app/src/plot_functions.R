@@ -197,9 +197,7 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
   if (input$plot_polar_direction) {
     mu0 <- input$cond_mean_direction
     p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "black", linetype = "dashed", arrow = arrow()) + theme(legend.position = "none")
-    v_score_ <- v_score
-    if (v_score < 0.0)
-      v_score_ <- - v_score 
+    v_score_ <- abs(v_score)
     p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "blue", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
   }
     
@@ -303,6 +301,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
   bin_size <- 360 / input$bins
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
+  v_score <- signif(statistics[1, "V_score"], digits = 3)
+  
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
   if (statistics[1, "rayleigh_test"] < 0.001) {
     p_value <- "p < 0.001"
@@ -377,11 +377,12 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     p <- p + xlab(sprintf("number of cells = : %s \n polarity index: %s", length(feature_circular), polarity_index))
   }
 
-
-
   if (input$area_scaled) {
     p <- p + scale_y_sqrt()
   }
+  
+  
+  
 
   if (input$hemi_rose_options == "left") {
     # if (input$left_directional) {
@@ -402,12 +403,25 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
       statistics[1, "ci_50_upper_limit"] <- statistics[1, "ci_50_upper_limit"] + 180.0
     }
   }
+  
+  
 
 
 
-
-  p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index, size = 1.5, color = "red", lineend = "butt"), arrow = NULL) + theme(legend.position = "none")
-
+  if (input$plot_PI) {
+    p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index, size = 1.5, color = "red", lineend = "butt"), arrow = NULL) + theme(legend.position = "none")
+  }
+  
+  if (input$plot_polar_direction) {
+    mu0 <- input$cond_mean_direction
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "black", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
+    v_score_ <- v_score
+    if (v_score < 0.0)
+      v_score_ <- - v_score 
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "blue", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+  }
+  
+    
   if (input$ci_plot) {
     # p <- p + geom_segment(data = statistics, aes(x=ci_lower_limit, y=0, xend=ci_lower_limit, yend=1), size = 1.5, color="red",linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
     # p <- p + geom_segment(data = statistics, aes(x=ci_upper_limit, y=0, xend=ci_upper_limit, yend=1), size = 1.5, color="red",linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
@@ -436,6 +450,7 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
   if (input$hemi_rose_options == "mirrored") {
     statistics[1, "mean"] <- statistics[1, "mean"] + 180.0
+    statistics[1, "mu0"] <- statistics[1, "mu0"] + 180.0
     statistics[1, "ci_95_lower_limit"] <- statistics[1, "ci_95_lower_limit"] + 180.0
     statistics[1, "ci_95_upper_limit"] <- statistics[1, "ci_95_upper_limit"] + 180.0
     statistics[1, "ci_90_lower_limit"] <- statistics[1, "ci_90_lower_limit"] + 180.0
@@ -447,8 +462,18 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     statistics[1, "std_ang_low_lim"] <- statistics[1, "std_ang_low_lim"] + 180.0
     statistics[1, "std_ang_up_lim"] <- statistics[1, "std_ang_up_lim"] + 180.0
 
-    p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index, size = 1.5, color = "red", lineend = "butt"), arrow = NULL) + theme(legend.position = "none")
-
+    if (input$plot_PI) {
+      p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index, size = 1.5, color = "red", lineend = "butt"), arrow = NULL) + theme(legend.position = "none")
+    }
+    
+    
+    if (input$plot_polar_direction) {
+      #mu0 <- input$cond_mean_direction + 180
+      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "black", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
+      v_score <- v_score
+      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score), size = 3.0, color = "blue", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+    }
+    
     if (input$ci_plot) {
       if (input$ci_method == "95% CI of the mean") {
         p <- p + geom_segment(data = statistics, aes(x = ci_95_lower_limit, y = 0, xend = ci_95_lower_limit, yend = 1), size = 1.5, color = "red", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")

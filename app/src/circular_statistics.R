@@ -128,9 +128,9 @@ compute_directional_statistics <- function(data, feature, parameters) {
   # v_test_res <- v0.test(circular_data, mu0 = pi)
   rao_res <- capture.output(rao.spacing.test(circular_data, alpha = 0))
 
-  mu0_rad <- pi
-  mu0_deg <- 180.0
-  v_test_res <- v0.test(circular_data, mu0 = mu0_rad)
+  #mu0_rad <- pi
+  #mu0_deg <- 180.0
+  #v_test_res <- v0.test(circular_data, mu0 = mu0_rad)
   #if (input$stats_method %in% c("V-Test")) {
     mu0_deg <- input$cond_mean_direction
     mu0_rad <- pi * input$cond_mean_direction/ 180.0
@@ -227,20 +227,26 @@ compute_axial_statistics <- function(data, feature, parameters) {
   cos_mean <- cos_sum / length(circular_data)
 
   polarity_index <- sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
-  v_score <- -cos_mean * sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
+
 
   std_angular <- sqrt(2.0 * (1.0 - polarity_index)) * 180.0 / pi
   std_circular <- sqrt(-2.0 * log(polarity_index)) * 180.0 / pi
   angle_mean_rad <- atan2(sin_mean, cos_mean) / 2.0
-  angle_mean_deg <- angle_mean_rad * 180.0 / 3.1415926
+  
   if (angle_mean_rad < 0.0) {
-    angle_mean_deg <- 180.0 + angle_mean_rad * 180.0 / pi
+    angle_mean_rad <- angle_mean_rad + pi
+    #angle_mean_deg <- 180.0 + angle_mean_rad * 180.0 / pi
   }
+  angle_mean_deg <- angle_mean_rad * 180.0 / pi
 
   rayleigh_test_res <- r.test(circular_data)
   rayleigh_test <- rayleigh_test_res$p.value
 
-  v_test_res <- v0.test(circular_data, mu0 = pi)
+  mu0_deg <- input$cond_mean_direction
+  mu0_rad <- pi * input$cond_mean_direction/ 180.0
+  v_test_res <- v0.test(circular_data, mu0 = mu0_rad)
+  v_score <- abs(cos(angle_mean_rad - mu0_rad)) * polarity_index
+  #v_test_res <- v0.test(circular_data, mu0 = pi)
   v_test <- v_test_res$p.value
 
   watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
@@ -296,7 +302,9 @@ compute_axial_statistics <- function(data, feature, parameters) {
     "polarity_index" = polarity_index,
     "mean" = angle_mean_deg,
     "rayleigh_test" = rayleigh_test,
+    "V_score" = v_score,
     "v_test" = v_test,
+    "mu0" = mu0_deg, 
     "watson_test" = watson_res[5],
     "rao_test" = rao_res[5],
     "std_angular" = std_angular,
