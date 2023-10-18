@@ -92,7 +92,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
   cos_mean <- cos_sum / length(circular_data)
   polarity_index <- sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
 
-  v_score <- -cos_mean * sqrt(sin_mean * sin_mean + cos_mean * cos_mean)
+
   std_angular <- sqrt(2.0 * (1.0 - polarity_index)) * 180.0 / pi
   std_circular <- sqrt(-2.0 * log(polarity_index)) * 180.0 / pi
 
@@ -128,10 +128,15 @@ compute_directional_statistics <- function(data, feature, parameters) {
   # v_test_res <- v0.test(circular_data, mu0 = pi)
   rao_res <- capture.output(rao.spacing.test(circular_data, alpha = 0))
 
-  v_test_res <- v0.test(circular_data, mu0 = pi)
-  if (input$stats_method %in% c("V-Test")) {
-    v_test_res <- v0.test(circular_data, mu0 = pi * input$cond_mean_direction / 180.0)
-  }
+  mu0_rad <- pi
+  mu0_deg <- 180.0
+  v_test_res <- v0.test(circular_data, mu0 = mu0_rad)
+  #if (input$stats_method %in% c("V-Test")) {
+    mu0_deg <- input$cond_mean_direction
+    mu0_rad <- pi * input$cond_mean_direction/ 180.0
+    v_test_res <- v0.test(circular_data, mu0 = mu0_rad)
+  #}
+  v_score <- cos(angle_mean_rad - mu0_rad) * polarity_index
 
   rayleigh_test <- rayleigh_test_res$p.value
   v_test <- v_test_res$p.value

@@ -96,8 +96,12 @@ select_color <- function(parameters, input, plot_nr) {
 
 rose_plot_circular <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
   bin_size <- 360 / input$bins
+  
+  #print(plotted_feature)
+  print(feature_circular)
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
+  v_score <- signif(statistics[1, "V_score"], digits = 3)
 
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
   if (input$stats_method == "V-Test") {
@@ -110,7 +114,6 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
   } else {
     p_value <- paste0("P = ", toString(p_value_))
   }
-
 
   if (input$stats_method == "Watson's Test") {
     p_value <- statistics[1, "watson_test"]
@@ -183,18 +186,23 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
     p <- p + xlab(sprintf("number of cells = : %s \n polarity index: %s", length(feature_circular), polarity_index))
   }
 
-
-
-
-
-
   if (input$area_scaled) {
     p <- p + scale_y_sqrt(limits = c(0, sqrt(1.1))) ## + scale_y_continuous(limits = c(0, sqrt(1.1)))
   }
 
-
-  p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index, size = 1.5, color = "red"), arrow = arrow()) + theme(legend.position = "none")
-
+  if (input$plot_PI) {
+    p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index,  size = 3.0, color = "red"), arrow = arrow()) + theme(legend.position = "none")   
+  }
+  
+  if (input$plot_polar_direction) {
+    mu0 <- input$cond_mean_direction
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "black", linetype = "dashed", arrow = arrow()) + theme(legend.position = "none")
+    v_score_ <- v_score
+    if (v_score < 0.0)
+      v_score_ <- - v_score 
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "blue", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+  }
+    
   if (input$ci_plot) {
     if (input$ci_method == "95% CI of the mean") {
       p <- p + geom_segment(data = statistics, aes(x = ci_95_lower_limit, y = 0, xend = ci_95_lower_limit, yend = 1), size = 1.5, color = "red", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")

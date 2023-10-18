@@ -185,9 +185,10 @@ ui <- navbarPage(
           )
         ),
         numericInput("cond_mean_direction",
-                      "Reference direction for V-test and V-score",
-                      value = 180
+                      "Polar direction for V-test and V-score",
+                      value = 0
                     ),
+        checkboxInput("plot_polar_direction", "Plot polar vector and V-score", FALSE),
 
 
         conditionalPanel(
@@ -397,8 +398,6 @@ server <- function(input, output, session) {
     data <- data_upload()
     var_names <- colnames(data_upload())
 
-    print(var_names)
-
     if (length(var_names) > 0) {
       var_list <- c("none", var_names)
     } else {
@@ -435,7 +434,6 @@ server <- function(input, output, session) {
     var_names <- colnames(data_upload())
     if (length(var_names) > 0) {
       if (input$condition_col %in% colnames(data)) {
-        print(input$condition_col)
         condition_list <- unique(data[input$condition_col])
         updateSelectInput(session, "remove_these_conditions", choices = condition_list)
       }
@@ -476,8 +474,6 @@ server <- function(input, output, session) {
     {
       condition_column <- input$condition_col
       remove_these_conditions <- input$remove_these_conditions
-      #print("remove these considions:")
-      #observe({print(remove_these_conditions )})
       df_filtered <- df_filtered %>% filter(!.data[[condition_column[[1]]]] %in% !!remove_these_conditions)
     }
 
@@ -512,16 +508,9 @@ server <- function(input, output, session) {
           
           for (condition in condition_list) {
             df_single_cond  <- df_col_select[df_col_select[input$condition_col] == condition,]
-            print(tail(df_single_cond))
-            print(nrow(df_single_cond))
-            print(nrow(df_col_select))
-            
-            
+
             sample_identifier_list <- unlist(unique(df_single_cond[input$sample_col]))
             num_samples <- length(sample_identifier_list)
-            print("Condition:")
-            print(condition)
-            print(num_samples)
             
             mean_list = c()
             mean_list_1 = c()
@@ -532,23 +521,17 @@ server <- function(input, output, session) {
               mean_list =  append(mean_list, compute_mean(unlist(df_sample[input$feature_select]),input$stats_mode))
               mean_list_1 =  append(mean_list_1, compute_mean(unlist(df_sample[input$feature_select_1]),input$stats_mode_1))
               mean_list_2 =  append(mean_list_2, compute_mean(unlist(df_sample[input$feature_select_2]),input$stats_mode_2))
-
             }
-            print(mean_list)
-   #         
+     
             df_mean <- data.frame(matrix(nrow = num_samples, ncol = 5))
             colnames(df_mean) <- colnames(df_processed)
-            #df_mean <- data.frame("sample_col" = sample_identifier_list) 
-            #colnames(df_mean) <- c(input$sample_col) #unique(df_single_cond[input$sample_col]) )
+
             df_mean[input$condition_col] = condition
             df_mean[input$sample_col] = sample_identifier_list
             df_mean[input$feature_select] = mean_list
             df_mean[input$feature_select_1] = mean_list_1
             df_mean[input$feature_select_2] = mean_list_2
             df_processed <- rbind(df_processed, df_mean)
-            
-            
-            
             
           }
           
@@ -665,31 +648,36 @@ server <- function(input, output, session) {
     text_size <- input$text_size
 
     #results_all_df <- data_filtered()
-    results_all_df <- data_processed()
+    data <- data_processed()
     
     bin_size <- 360 / input$bins
     exp_condition <- input$exp_condition
-    feature <- parameters[input$feature_select][[1]][1]
+    feature <- input$feature_select
+    plot_title <- feature
+    if (feature %in% names(parameters)) {
+      plot_title <- parameters[input$feature_select][[1]][3]
+    }
+      #feature <- parameters[input$feature_select][[1]][1]
 
     if (input$stats_mode == "directional") {
 
-      x_data <- unlist(results_all_df[feature]) * 180.0 / pi
-      statistics <- compute_directional_statistics(results_all_df, feature, parameters)
-      plot_title <- parameters[input$feature_select][[1]][3]
+      x_data <- unlist(data[feature]) * 180.0 / pi
+      statistics <- compute_directional_statistics(data, feature, parameters)
+
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
 
     } else if (input$stats_mode == "axial") {
 
-      x_data <- results_all_df[feature]
-      statistics <- compute_axial_statistics(results_all_df, feature, parameters)
+      x_data <- data[feature]
+      statistics <- compute_axial_statistics(data, feature, parameters)
       x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
-      plot_title <- parameters[input$feature_select][[1]][3]
+
       p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, 0, text_size)
     } else {
-      x_data <- unlist(results_all_df[feature])
-      statistics <- compute_linear_statistics(results_all_df, feature, parameters)
-      plot_title <- parameters[input$feature_select][[1]][3]
+      x_data <- unlist(data[feature])
+      statistics <- compute_linear_statistics(data, feature, parameters)
+      
       p <- linear_histogram(parameters, input, statistics, x_data, plot_title, 0, text_size, min(x_data), max(x_data))
     }
 
@@ -742,36 +730,26 @@ server <- function(input, output, session) {
     polarity_indices <- list()
     angle_mean_degs <- list()
 
-    results_all_df <- data_filtered()
-    #results_all_df <- data_processed()
+    #results_all_df <- data_filtered()
+    results_all_df <- data_processed()
     
     feature <- input$feature_select
     if (feature %in% names(parameters)) {
       feature <- parameters[input$feature_select][[1]][1]
     }
 
-    #feature <- parameters[input$feature_select][[1]][1]
     condition_col <- input$condition_col
 
     condition_list <- unlist(unique(results_all_df[condition_col]))
-    # plist <- vector('list', length(unique(results_all_df$filename)))
-    #plist <- vector("list", length(condition_list))
-    #print("length of plot list")
-    #print(plist)
-    #print("list of unique entries")
-    #print(unlist(unique(results_all_df[condition_col])))
 
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
-    # for(file_name in unique(results_all_df$filename)) {
-    #  results_df <- subset(results_all_df, results_all_df$filename == file_name )
-    for (file_name in condition_list) {
-      results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
-
+    
+    for (condition in condition_list) {
+      #results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
+      results_df <- results_all_df[results_all_df[condition_col] == condition,]
       x <- unlist(results_df[feature])
       angle_dists[[i]] <- x
-
-      file_names[[i]] <- file_name
-
+      file_names[[i]] <- condition
       i <- i + 1
     }
 
@@ -783,12 +761,12 @@ server <- function(input, output, session) {
     plotseries <- function(i) {
       angle_dist <- angle_dists[[i]]
       file_name <- file_names[[i]]
-      # polarity_index <- polarity_indices[[i]]
-      # angle_mean_deg <- angle_mean_degs[[i]]
+
 
       # results_df <- subset(results_all_df, results_all_df$filename == file_name)
-      results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
-
+      #results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
+      results_df <- results_all_df[results_all_df[condition_col] == file_name,]
+      
       plot_title <- file_name
 
       if (nchar(file_name) > 37) {
@@ -797,11 +775,6 @@ server <- function(input, output, session) {
         file_name_start <- substr(file_name, 1, max_fl)
         plot_title <- paste0(file_name_start, "...", file_name_end)
       }
-      # if (nchar(file_name) > 15) {
-      #    plot_title <- paste0("image #",toString(i))
-      #    print(paste0("filename: ",file_name," too long, will be replaced by",plot_title))
-      # }
-
 
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
@@ -827,15 +800,13 @@ server <- function(input, output, session) {
         # plot_title <- file_name
         # p <- linear_histogram(parameters, input, statistics, x_data,  plot_title, i, text_size, x_lim[0], x_lim[1])
         p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(results_all_df[feature]), max(results_all_df[feature]))
-        #p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(x_data), max(x_data))
       }
     }
 
 
     myplots <- lapply(1:length(angle_dists), plotseries)
 
-    # print(myplots)
-    grid.arrange(grobs = myplots, nrow = nCol) # , widths = list(10,10))
+    grid.arrange(grobs = myplots, nrow = nCol) 
   })
 
   output$multi_dist_plot <- renderPlot(width = width_A, height = height_A, {
