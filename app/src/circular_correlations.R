@@ -156,9 +156,16 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
   } else {
     p <- ggplot(plot_df, aes(x = x, y = y)) +
       geom_point(size = input$marker_size_corr, color = color) +
-      theme_minimal(base_size = text_size) # theme_bw()
+      theme_minimal(base_size = text_size) 
+
+      # theme_bw()
   }  
 
+  if (mode_1 == 'directional') { p <- p + xlim(0,360) }
+  if (mode_1 == 'axial') { p <- p + xlim(0,180) }
+  if (mode_2 == 'directional') { p <- p + ylim(0,360) }
+  if (mode_2 == 'axial') { p <- p + ylim(0,180) }
+  
   p <- p + theme(aspect.ratio = 3 / 3)
   
   if ( (mode_1 == "linear") | (mode_2 == "linear") ) {
