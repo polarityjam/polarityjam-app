@@ -137,6 +137,8 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
 
 
   colnames(plot_df) <- c("x", "y", "condition")
+  
+  
   if (plot_nr == 0) {
     #Okabe_Ito
     if (input$select_colormap == "gray") {
@@ -161,10 +163,10 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
       # theme_bw()
   }  
 
-  if (mode_1 == 'directional') { p <- p + xlim(0,360) }
-  if (mode_1 == 'axial') { p <- p + xlim(0,180) }
-  if (mode_2 == 'directional') { p <- p + ylim(0,360) }
-  if (mode_2 == 'axial') { p <- p + ylim(0,180) }
+  #if (mode_1 == 'directional') { p <- p + xlim(0,360) }
+  #if (mode_1 == 'axial') { p <- p + xlim(0,180) }
+  #if (mode_2 == 'directional') { p <- p + ylim(0,360) }
+  #if (mode_2 == 'axial') { p <- p + ylim(0,180) }
   
   p <- p + theme(aspect.ratio = 3 / 3)
   
