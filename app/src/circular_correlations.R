@@ -172,7 +172,7 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
   
   if ( (mode_1 == "linear") | (mode_2 == "linear") ) {
     reg_coeff <- signif(res, digits = 3)
-    p <- p + ggtitle(sprintf("number of cells = : %s \n r = %s", length(feature_1_values), reg_coeff))
+    p <- p + ggtitle(sprintf("N = : %s \n r = %s", length(feature_1_values), reg_coeff))
   } else {
     
     reg_coeff <- signif(res$r, digits = 3)
