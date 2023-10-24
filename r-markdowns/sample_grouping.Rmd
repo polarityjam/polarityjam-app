@@ -1,0 +1,100 @@
+---
+title: "Grouping_Samples"
+author: "Wolfgang Giese"
+date: '2023-08-23'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r read_data}
+filepath <- "../test_data/stack_EC_microscopy/merged_table_no_transfection_18dyn_4h_BSA.csv"
+ec_features <- read.csv(file = filepath)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r create_new_data_frame, echo=FALSE}
+
+source(file = "../app/src/circular_statistics.R", local = T)
+
+#default sample identifier should be index the index meaning each row
+sample_identifier <- "index"
+
+sample_identifier <- "filename"
+condition_identifier <- "none" # default
+#condition_identifier <- "condition"
+
+head(ec_features)
+sample_identifier_list <- unlist(unique(ec_features[sample_identifier]))
+
+ec_features_sample_group <- data.frame(sample_identifier = unique(ec_features[sample_identifier]) )
+
+#df$Spalte1 <- c()
+#df$Spalte2 <- c()
+#colnames(df) <- c("Spalte1", "Spalte2")
+
+n <- length(sample_identifier_list)
+# Optional: Anzahl der Zeilen festlegen
+#df <- df[1:n, ]
+
+#feature <- "area"
+#stats_mode <- "linear"
+
+feature <- "angle_rad" 
+stats_mode <- "directional"
+
+#feature <- "shape_orientation"
+#stats_mode <- "axial"
+
+mean_list = c()
+
+#str(ec_features)
+
+for(i in 1:n) {       # for-loop over columns
+  print(sample_identifier_list[i])
+  ec_features_sub = subset(ec_features, ec_features[sample_identifier] == sample_identifier_list[i])
+  #ec_features_sub = subset(ec_features, filename == sample_identifier_list[i])
+  #print(head(ec_features_sub))
+  #print(str(ec_features_sub[feature]))
+  
+  mean_list =  append(mean_list, compute_mean(unlist(ec_features_sub[feature]),stats_mode))
+  #if (stats_mode == "directional") {
+  #  mean_list =  append(mean_list, compute_circular_mean(unlist(ec_features_sub[feature])))
+  #} else if (stats_mode == "axial") {
+  #  mean_value <- compute_circular_mean(unlist(ec_features_sub[feature])
+  #                                      
+  #  mean_list =  append(mean_list, mean(unlist(ec_features_sub[feature])))
+  #} else if (stats_mode == "linear") {
+  #  mean_list =  append(mean_list, mean(unlist(ec_features_sub[feature])))
+  #}
+  #print(ec_features_sub[feature])
+}
+
+ec_features_sample_group[feature] = mean_list
+
+print(ec_features_sample_group)
+
+```
+
+
+```{r group_by, echo=FALSE}
+#default sample identifier should be index the index meaning each row
+#ec_features group_by()
+test <- ec_features %>% group_by("filename") %>% summarize(mean_cell_area = mean("cell_area", na.rm = TRUE))
+head(test)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -30,6 +30,7 @@
     "marker_sum_expression_cyt": ["marker_sum_expression_cyt", "linear", "sum intensity cytosol"],
     "marker_mean_expression_mem": ["marker_mean_expression_mem", "linear", "mean intensity junction area"],
     "marker_sum_expression_mem": ["marker_sum_expression_mem", "linear", "sum intensity junction area"],
+    "marker_cue_directional_intensity_ratio": ["marker_cue_directional_intensity_ratio", "linear", "directional marker intensity ratio"],
     "junction_perimeter": ["junction_perimeter", "linear", "junction perimeter"],
     "junction_protein_area": ["junction_protein_area", "linear", "junction protein area"],
     "junction_mean_expression": ["junction_mean_expression", "linear", "junction mean expression"],
