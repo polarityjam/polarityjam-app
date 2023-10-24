@@ -29,27 +29,13 @@
 # SOFTWARE.
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
 options(shiny.maxRequestSize = 30 * 1024^2) # upload size is limited to 30 MB
 
-library(shiny)
-library(shinyFiles)
-library(shinycssloaders)
-library(circular)
-library(ggplot2)
-library(shinyWidgets)
-library(tools)
-library(grid)
-library(gridExtra)
-library(tidyverse)
-library(CircStats)
-library(readxl)
-library(rjson)
-library(optparse)
+if (!require("pacman")) install.packages ("pacman")
+require('pacman')
+p_load(shiny,shinyFiles,shinycssloaders,circular,ggplot2,shinyWidgets,tools,grid,gridExtra,tidyverse,CircStats,readxl,rjson,optparse, install=TRUE, update=FALSE)
 
-option_list <- list(
-  make_option(c("-p", "--port"), type = "integer", default = 8888)
-)
+option_list <- list(make_option(c("-p", "--port"), type = "integer", default = 8888))
 opt <- parse_args(OptionParser(option_list = option_list))
 
 upload_enabled = TRUE
