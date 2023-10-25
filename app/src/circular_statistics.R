@@ -124,7 +124,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
 
   rayleigh_test_res <- r.test(circular_data)
   # rayleigh_test_res <- r.test(results_df$angle_deg, degree = TRUE)
-  watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
+  #watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
   # v_test_res <- v0.test(circular_data, mu0 = pi)
   rao_res <- capture.output(rao.spacing.test(circular_data, alpha = 0))
 
@@ -166,7 +166,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
     "std_ang_low_lim" = std_ang_low_lim,
     "rayleigh_test" = rayleigh_test,
     "v_test" = v_test,
-    "watson_test" = watson_res[5],
+    #"watson_test" = watson_res[5],
     "rao_test" = rao_res[5],
     "ci_95_lower_limit" = ci_95_lower_limit,
     "ci_95_upper_limit" = ci_95_upper_limit,
@@ -249,7 +249,7 @@ compute_axial_statistics <- function(data, feature, parameters) {
   #v_test_res <- v0.test(circular_data, mu0 = pi)
   v_test <- v_test_res$p.value
 
-  watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
+  #watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
   # v_test_res <- v0.test(circular_data, mu0 = pi)
   rao_res <- capture.output(rao.spacing.test(circular_data, alpha = 0))
 
@@ -305,7 +305,7 @@ compute_axial_statistics <- function(data, feature, parameters) {
     "V_score" = v_score,
     "v_test" = v_test,
     "mu0" = mu0_deg, 
-    "watson_test" = watson_res[5],
+    #"watson_test" = watson_res[5],
     "rao_test" = rao_res[5],
     "std_angular" = std_angular,
     "std_circ_up_lim" = std_circ_up_lim,

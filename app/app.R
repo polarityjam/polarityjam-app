@@ -141,7 +141,7 @@ ui <- navbarPage(
           selected = "directional"
         ),
         selectInput("stats_method", "Choose a stats test",
-          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
+          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test") #, "Watson's Test")
         ),
         #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")

@@ -115,9 +115,9 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
     p_value <- paste0("P = ", toString(p_value_))
   }
 
-  if (input$stats_method == "Watson's Test") {
-    p_value <- statistics[1, "watson_test"]
-  }
+  #if (input$stats_method == "Watson's Test") {
+  #  p_value <- statistics[1, "watson_test"]
+  #}
   if (input$stats_method == "Rao's Test") {
     p_value <- statistics[1, "rao_test"]
   }
