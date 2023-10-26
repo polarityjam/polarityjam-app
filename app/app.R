@@ -53,7 +53,6 @@ Tol_light <- c("#BBCC33", "#AAAA00", "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
 # From Color Universal Design (CUD): https://jfly.uni-koeln.de/color/
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 
-
 # Create a reactive object here that we can share between all the sessions.
 vals <- reactiveValues(count = 0)
 
@@ -62,7 +61,7 @@ vals <- reactiveValues(count = 0)
 ui <- navbarPage(
   "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
 
-  ### Panel A: Data upload and preparation
+   ### Panel A: Data upload and preparation
 
   tabPanel(
     "Data preparation",
@@ -349,7 +348,11 @@ ui <- navbarPage(
 server <- function(input, output, session) {
 
   ### functions related to: Panel A, data preparation
-
+  #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+  #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+  #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+  
+  
   data_upload <- reactive({
     "
     reactive function that reads a csv file or xls file and returns a data frame,
@@ -445,7 +448,7 @@ server <- function(input, output, session) {
   data_filtered <- reactive({
     df_filtered <- data_upload() 
 
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     
     #if subsampling data is selected, only every n-th row is kept
     if (input$subsample_data) {
@@ -476,7 +479,7 @@ server <- function(input, output, session) {
     df_processed  <- NULL
     data <- data_filtered()
     
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     
     if (input$group_samples == TRUE) {
       
@@ -582,7 +585,7 @@ server <- function(input, output, session) {
 
     data_df <- data_filtered()
 
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     parameters <- fromJSON(file = "parameters/parameters.json")
 
     condition_col <- input$condition_col
@@ -627,8 +630,8 @@ server <- function(input, output, session) {
   )
 
   merged_plot <- reactive({
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
@@ -704,8 +707,8 @@ server <- function(input, output, session) {
     function that plots data for every condition in the selected column of the data frame
     "
 
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
@@ -962,9 +965,9 @@ server <- function(input, output, session) {
     
     
     parameters <- fromJSON(file = "parameters/parameters.json")
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
     
     text_size <- input$text_size_corr
 
@@ -1010,9 +1013,9 @@ server <- function(input, output, session) {
   multi_corr_plot <- reactive({ 
     
     parameters <- fromJSON(file = "parameters/parameters.json")
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
     
     text_size <- input$text_size_corr
     
@@ -1078,7 +1081,7 @@ server <- function(input, output, session) {
       
       correlation_data <- data_filtered()
       
-      source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+      #ource(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
       parameters <- fromJSON(file = "parameters/parameters.json")
       
       condition_col <- input$condition_col
@@ -1422,8 +1425,8 @@ server <- function(input, output, session) {
 
 
   comparison_plot <- reactive({
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- 12
@@ -1595,8 +1598,8 @@ server <- function(input, output, session) {
     control_condition <- input$control_condition
     condition_list <- unlist(unique(data[condition_col]))
 
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
 
