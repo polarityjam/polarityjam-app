@@ -348,10 +348,9 @@ ui <- navbarPage(
 server <- function(input, output, session) {
 
   ### functions related to: Panel A, data preparation
-  #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-  #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-  #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
-  
+  source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+  source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+  source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
   
   data_upload <- reactive({
     "
@@ -728,7 +727,6 @@ server <- function(input, output, session) {
     }
 
     condition_col <- input$condition_col
-
     condition_list <- unlist(unique(results_all_df[condition_col]))
 
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
@@ -767,27 +765,16 @@ server <- function(input, output, session) {
 
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
-        # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
-        print(paste0("Length of filename", toString(i)))
-
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
-        # print(x_data)
         statistics <- compute_axial_statistics(results_df, feature, parameters)
-        # if (input$left_directional) {
         x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
-        # } else {
-        #  x_data <- unlist(results_df[feature])*180.0/pi
-        # }
-        # plot_title <- file_name
         p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
         statistics <- compute_linear_statistics(results_df, feature, parameters)
-        # plot_title <- file_name
-        # p <- linear_histogram(parameters, input, statistics, x_data,  plot_title, i, text_size, x_lim[0], x_lim[1])
         p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(results_all_df[feature]), max(results_all_df[feature]))
       }
     }
@@ -970,19 +957,8 @@ server <- function(input, output, session) {
     #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
     
     text_size <- input$text_size_corr
+    correlation_data <- data_filtered()
 
-    # inFileCorrelationData <- input$correlationData
-
-    # if (is.null(inFileCorrelationData))
-    #    return(NULL)
-
-    # print(inFileCorrelationData$datapath)
-    # correlation_data <- read.csv(inFileCorrelationData$datapath, header = input$header_correlation)
-
-    correlation_data <- data_filtered() # read.csv(inFileCorrelationData$datapath, header = input$header_correlation)
-
-    
-    
     feature_1 <- parameters[input$feature_select_1][[1]][1]
     feature_2 <- parameters[input$feature_select_2][[1]][1]
     
@@ -1030,14 +1006,10 @@ server <- function(input, output, session) {
     feature_2_values <- unlist(correlation_data[feature_2])
     feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
     
-    # feature_1_values_sin <- sin(unlist(correlation_data[feature_1]))
-    # feature_2_values_sin <- sin(unlist(correlation_data[feature_2]))
-    
     feature_1_name <- parameters[input$feature_select_1][[1]][3]
     feature_2_name <- parameters[input$feature_select_2][[1]][3]
     
     conditions <- correlation_data[input$condition_col]
-    
     condition_list <- unlist(unique(correlation_data[input$condition_col]))
     plist <- vector("list", length(condition_list))
     
@@ -1047,8 +1019,18 @@ server <- function(input, output, session) {
     bin_size <- 360 / input$bins
     
     plotseries <- function(i) {
+      file_name <- condition_list[i]
+      plot_title <- file_name 
+      
+      if (nchar(file_name) > 37) {
+        max_fl <- 17
+        file_name_end <- substr(file_name, nchar(file_name) - max_fl + 1, nchar(file_name))
+        file_name_start <- substr(file_name, 1, max_fl)
+        plot_title <- paste0(file_name_start, "...", file_name_end)
+      }
+      
       data <- subset(correlation_data, correlation_data[input$condition_col] == condition_list[i])
-      p <- plot_circular_circular(data, input, parameters, plot_nr = i, text_size = text_size) 
+      p <- plot_circular_circular(data, input, parameters, plot_title, plot_nr = i, text_size = text_size) 
     }
     
     myplots <- lapply(1:n, plotseries)
