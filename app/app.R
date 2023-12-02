@@ -29,27 +29,13 @@
 # SOFTWARE.
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
 options(shiny.maxRequestSize = 30 * 1024^2) # upload size is limited to 30 MB
 
-library(shiny)
-library(shinyFiles)
-library(shinycssloaders)
-library(circular)
-library(ggplot2)
-library(shinyWidgets)
-library(tools)
-library(grid)
-library(gridExtra)
-library(tidyverse)
-library(CircStats)
-library(readxl)
-library(rjson)
-library(optparse)
+if (!require("pacman")) install.packages ("pacman")
+require('pacman')
+p_load(shiny,shinyFiles,shinycssloaders,circular,ggplot2,shinyWidgets,tools,grid,gridExtra,tidyverse,CircStats,readxl,rjson,optparse, install=TRUE, update=FALSE)
 
-option_list <- list(
-  make_option(c("-p", "--port"), type = "integer", default = 8888)
-)
+option_list <- list(make_option(c("-p", "--port"), type = "integer", default = 8888))
 opt <- parse_args(OptionParser(option_list = option_list))
 
 upload_enabled = TRUE
@@ -67,7 +53,6 @@ Tol_light <- c("#BBCC33", "#AAAA00", "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
 # From Color Universal Design (CUD): https://jfly.uni-koeln.de/color/
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 
-
 # Create a reactive object here that we can share between all the sessions.
 vals <- reactiveValues(count = 0)
 
@@ -76,7 +61,7 @@ vals <- reactiveValues(count = 0)
 ui <- navbarPage(
   "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
 
-  ### Panel A: Data upload and preparation
+   ### Panel A: Data upload and preparation
 
   tabPanel(
     "Data preparation",
@@ -155,7 +140,7 @@ ui <- navbarPage(
           selected = "directional"
         ),
         selectInput("stats_method", "Choose a stats test",
-          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
+          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test") #, "Watson's Test")
         ),
         #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
@@ -363,7 +348,10 @@ ui <- navbarPage(
 server <- function(input, output, session) {
 
   ### functions related to: Panel A, data preparation
-
+  source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+  source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+  source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+  
   data_upload <- reactive({
     "
     reactive function that reads a csv file or xls file and returns a data frame,
@@ -459,7 +447,7 @@ server <- function(input, output, session) {
   data_filtered <- reactive({
     df_filtered <- data_upload() 
 
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     
     #if subsampling data is selected, only every n-th row is kept
     if (input$subsample_data) {
@@ -490,7 +478,7 @@ server <- function(input, output, session) {
     df_processed  <- NULL
     data <- data_filtered()
     
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     
     if (input$group_samples == TRUE) {
       
@@ -596,7 +584,7 @@ server <- function(input, output, session) {
 
     data_df <- data_filtered()
 
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     parameters <- fromJSON(file = "parameters/parameters.json")
 
     condition_col <- input$condition_col
@@ -641,8 +629,8 @@ server <- function(input, output, session) {
   )
 
   merged_plot <- reactive({
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
@@ -718,8 +706,8 @@ server <- function(input, output, session) {
     function that plots data for every condition in the selected column of the data frame
     "
 
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
@@ -739,7 +727,6 @@ server <- function(input, output, session) {
     }
 
     condition_col <- input$condition_col
-
     condition_list <- unlist(unique(results_all_df[condition_col]))
 
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
@@ -778,27 +765,16 @@ server <- function(input, output, session) {
 
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
-        # statistics <- compute_polarity_index(unlist(results_df[feature]))
         x_data <- unlist(results_df[feature]) * 180.0 / pi
-        print(paste0("Length of filename", toString(i)))
-
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
-        # print(x_data)
         statistics <- compute_axial_statistics(results_df, feature, parameters)
-        # if (input$left_directional) {
         x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
-        # } else {
-        #  x_data <- unlist(results_df[feature])*180.0/pi
-        # }
-        # plot_title <- file_name
         p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
         statistics <- compute_linear_statistics(results_df, feature, parameters)
-        # plot_title <- file_name
-        # p <- linear_histogram(parameters, input, statistics, x_data,  plot_title, i, text_size, x_lim[0], x_lim[1])
         p <- linear_histogram(parameters, input, statistics, x_data, plot_title, i, text_size, min(results_all_df[feature]), max(results_all_df[feature]))
       }
     }
@@ -976,24 +952,13 @@ server <- function(input, output, session) {
     
     
     parameters <- fromJSON(file = "parameters/parameters.json")
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
     
     text_size <- input$text_size_corr
+    correlation_data <- data_filtered()
 
-    # inFileCorrelationData <- input$correlationData
-
-    # if (is.null(inFileCorrelationData))
-    #    return(NULL)
-
-    # print(inFileCorrelationData$datapath)
-    # correlation_data <- read.csv(inFileCorrelationData$datapath, header = input$header_correlation)
-
-    correlation_data <- data_filtered() # read.csv(inFileCorrelationData$datapath, header = input$header_correlation)
-
-    
-    
     feature_1 <- parameters[input$feature_select_1][[1]][1]
     feature_2 <- parameters[input$feature_select_2][[1]][1]
     
@@ -1024,9 +989,9 @@ server <- function(input, output, session) {
   multi_corr_plot <- reactive({ 
     
     parameters <- fromJSON(file = "parameters/parameters.json")
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
     
     text_size <- input$text_size_corr
     
@@ -1041,14 +1006,10 @@ server <- function(input, output, session) {
     feature_2_values <- unlist(correlation_data[feature_2])
     feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
     
-    # feature_1_values_sin <- sin(unlist(correlation_data[feature_1]))
-    # feature_2_values_sin <- sin(unlist(correlation_data[feature_2]))
-    
     feature_1_name <- parameters[input$feature_select_1][[1]][3]
     feature_2_name <- parameters[input$feature_select_2][[1]][3]
     
     conditions <- correlation_data[input$condition_col]
-    
     condition_list <- unlist(unique(correlation_data[input$condition_col]))
     plist <- vector("list", length(condition_list))
     
@@ -1058,8 +1019,18 @@ server <- function(input, output, session) {
     bin_size <- 360 / input$bins
     
     plotseries <- function(i) {
+      file_name <- condition_list[i]
+      plot_title <- file_name 
+      
+      if (nchar(file_name) > 37) {
+        max_fl <- 17
+        file_name_end <- substr(file_name, nchar(file_name) - max_fl + 1, nchar(file_name))
+        file_name_start <- substr(file_name, 1, max_fl)
+        plot_title <- paste0(file_name_start, "...", file_name_end)
+      }
+      
       data <- subset(correlation_data, correlation_data[input$condition_col] == condition_list[i])
-      p <- plot_circular_circular(data, input, parameters, plot_nr = i, text_size = text_size) 
+      p <- plot_circular_circular(data, input, parameters, plot_title, plot_nr = i, text_size = text_size) 
     }
     
     myplots <- lapply(1:n, plotseries)
@@ -1092,7 +1063,7 @@ server <- function(input, output, session) {
       
       correlation_data <- data_filtered()
       
-      source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
+      #ource(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
       parameters <- fromJSON(file = "parameters/parameters.json")
       
       condition_col <- input$condition_col
@@ -1436,8 +1407,8 @@ server <- function(input, output, session) {
 
 
   comparison_plot <- reactive({
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- 12
@@ -1609,8 +1580,8 @@ server <- function(input, output, session) {
     control_condition <- input$control_condition
     condition_list <- unlist(unique(data[condition_col]))
 
-    source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
+    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
 
