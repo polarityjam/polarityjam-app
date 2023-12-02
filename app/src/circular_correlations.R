@@ -31,7 +31,7 @@
 
 
 # rename to correlation
-plot_circular_circular <- function(correlation_data, input, parameters, plot_nr = 0, text_size = 24) {
+plot_circular_circular <- function(correlation_data, input, parameters, plot_title, plot_nr = 0, text_size = 24) {
   
   source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
   
@@ -172,7 +172,7 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
   
   if ( (mode_1 == "linear") | (mode_2 == "linear") ) {
     reg_coeff <- signif(res, digits = 3)
-    p <- p + ggtitle(sprintf("number of cells = : %s \n r = %s", length(feature_1_values), reg_coeff))
+    p <- p + ggtitle(sprintf("N = : %s \n r = %s", length(feature_1_values), reg_coeff))
   } else {
     
     reg_coeff <- signif(res$r, digits = 3)
@@ -186,7 +186,7 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_nr 
       p_value <- p_value_
     }
     
-    p <- p + ggtitle(sprintf("number of cells = : %s \n r = %s, p-value: %s", length(feature_1_values), reg_coeff, p_value))
+    p <- p + ggtitle(sprintf(" %s \n N = %s, r = %s,\n p-value: %s", plot_title, length(feature_1_values), reg_coeff, p_value))
   }
   
   p <- p + xlab(feature_1_name) + ylab(feature_2_name)

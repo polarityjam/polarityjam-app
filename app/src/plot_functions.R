@@ -115,9 +115,9 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
     p_value <- paste0("P = ", toString(p_value_))
   }
 
-  if (input$stats_method == "Watson's Test") {
-    p_value <- statistics[1, "watson_test"]
-  }
+  #if (input$stats_method == "Watson's Test") {
+  #  p_value <- statistics[1, "watson_test"]
+  #}
   if (input$stats_method == "Rao's Test") {
     p_value <- statistics[1, "rao_test"]
   }
@@ -181,9 +181,9 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
 
 
   if (input$stats_method != "None") {
-    p <- p + xlab(sprintf("number of cells = : %s \n polarity index: %s, %s", length(feature_circular), polarity_index, p_value))
+    p <- p + xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular), polarity_index, p_value))
   } else {
-    p <- p + xlab(sprintf("number of cells = : %s \n polarity index: %s", length(feature_circular), polarity_index))
+    p <- p + xlab(sprintf("N = %s \n polarity index: %s", length(feature_circular), polarity_index))
   }
 
   if (input$area_scaled) {
@@ -280,7 +280,7 @@ compare_plot_circular <- function(parameters, input, statistics, feature_circula
       breaks = (c(0, 90, 180, 270))
     ) +
     theme_minimal(base_size = text_size) +
-    xlab(sprintf("number of cells = : %s \n polarity index: %s, %s", length(feature_circular_1), polarity_index, p_value)) +
+    xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular_1), polarity_index, p_value)) +
     ylab("polarity index")
   # theme(axis.text.y=element_blank()) +
 
@@ -372,9 +372,9 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
   # theme(axis.text.y=element_blank()) +
 
   if (input$stats_method != "None") {
-    p <- p + xlab(sprintf("number of cells = : %s \n polarity index: %s, %s", length(feature_circular), polarity_index, p_value))
+    p <- p + xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular), polarity_index, p_value))
   } else {
-    p <- p + xlab(sprintf("number of cells = : %s \n polarity index: %s", length(feature_circular), polarity_index))
+    p <- p + xlab(sprintf("N = %s \n polarity index: %s", length(feature_circular), polarity_index))
   }
 
   if (input$area_scaled) {
