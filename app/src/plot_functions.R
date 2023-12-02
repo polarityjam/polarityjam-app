@@ -182,6 +182,8 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
 
   if (input$stats_method != "None") {
     p <- p + xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular), polarity_index, p_value))
+  } else if (input$plot_polar_direction) {
+    p <- p + xlab(sprintf("N = %s \n polarity index: %s, \n V-score: %s", length(feature_circular), polarity_index, v_score))
   } else {
     p <- p + xlab(sprintf("N = %s \n polarity index: %s", length(feature_circular), polarity_index))
   }
@@ -290,6 +292,8 @@ compare_plot_circular <- function(parameters, input, statistics, feature_circula
     theme_minimal(base_size = text_size) +
     xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular_1), polarity_index, p_value)) +
     ylab("polarity index")
+  
+  
   # theme(axis.text.y=element_blank()) +
 
   if (input$area_scaled) {
@@ -310,6 +314,7 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   v_score <- signif(statistics[1, "V_score"], digits = 3)
+  v_proj <- signif(statistics[1, "V_proj"], digits = 3)
   
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
   if (statistics[1, "rayleigh_test"] < 0.001) {
@@ -381,6 +386,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
   if (input$stats_method != "None") {
     p <- p + xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular), polarity_index, p_value))
+  } else if (input$plot_polar_direction) {
+    p <- p + xlab(sprintf("N = %s \n polarity index: %s, \n V-score: %s", length(feature_circular), polarity_index, v_score))
   } else {
     p <- p + xlab(sprintf("N = %s \n polarity index: %s", length(feature_circular), polarity_index))
   }
@@ -415,8 +422,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
   if (input$plot_polar_direction) {
     mu0 <- input$cond_mean_direction
     p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "gray", arrow = NULL) + theme(legend.position = "none")
-    v_score_ <- abs(v_score)
-    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+    v_proj_ <- abs(v_proj)
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_proj_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
   }
 
 
@@ -471,8 +478,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     if (input$plot_polar_direction) {
       #mu0 <- input$cond_mean_direction + 180
       p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "gray", arrow = NULL) + theme(legend.position = "none")
-      v_score <- v_score
-      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+      v_proj_ <- abs(v_proj)
+      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_proj_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
     }
     
     if (input$plot_PI) {
