@@ -245,7 +245,8 @@ compute_axial_statistics <- function(data, feature, parameters) {
   mu0_deg <- input$cond_mean_direction
   mu0_rad <- pi * input$cond_mean_direction/ 180.0
   v_test_res <- v0.test(circular_data, mu0 = mu0_rad)
-  v_score <- abs(cos(angle_mean_rad - mu0_rad)) * polarity_index
+  v_score <- cos(2.0*angle_mean_rad - 2.0*mu0_rad) * polarity_index
+  v_proj <- cos(angle_mean_rad - mu0_rad) * polarity_index
   #v_test_res <- v0.test(circular_data, mu0 = pi)
   v_test <- v_test_res$p.value
 
@@ -303,6 +304,7 @@ compute_axial_statistics <- function(data, feature, parameters) {
     "mean" = angle_mean_deg,
     "rayleigh_test" = rayleigh_test,
     "V_score" = v_score,
+    "V_proj" = v_proj,
     "v_test" = v_test,
     "mu0" = mu0_deg, 
     #"watson_test" = watson_res[5],

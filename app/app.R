@@ -864,15 +864,18 @@ server <- function(input, output, session) {
   # download for multi plot
   # TODO: check why multi plot files have a grid when downloaded, while no grid is displayed in the app
 
-
   output$downloadMultiPlotPDF <- downloadHandler(
     filename <- function() {
       paste("PolarityJaM_Multi_", Sys.time(), ".pdf", sep = "")
     },
     content <- function(file) {
       pdf(file, width = input$plot_width_A / 72, height = input$plot_height_A / 72)
+      #plot(multi_plot(), bg = 'transparent')
       plot(multi_plot())
       dev.off()
+      #multi_plot()
+      #ggsave(file, width = input$plot_width_A / 72, height = input$plot_height_A / 72)
+      #unlink(file)
     },
     contentType = "application/pdf" # MIME type of the image
   )
