@@ -143,21 +143,21 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
     #Okabe_Ito
     if (input$select_colormap == "gray") {
       p <- ggplot(plot_df, aes(x = x, y = y)) +
-        geom_point(size = input$marker_size_corr) +
+        geom_point(size = input$marker_size_corr, alpha=input$marker_alpha_corr) +
         theme_minimal(base_size = text_size)
     } else {
       
       
       #TODO: add colorblind friendly palette here
       p <- ggplot(plot_df, aes(x = x, y = y, color = condition)) +
-        geom_point(size = input$marker_size_corr) +
+        geom_point(size = input$marker_size_corr, alpha=input$marker_alpha_corr) +
         theme_minimal(base_size = text_size) +
         scale_colour_manual(values=color_palette) 
     }#+
       #scale_colour_manual(values=Okabe_Ito) # theme_bw()
   } else {
     p <- ggplot(plot_df, aes(x = x, y = y)) +
-      geom_point(size = input$marker_size_corr, color = color) +
+      geom_point(size = input$marker_size_corr, color = color, alpha=input$marker_alpha_corr) +
       theme_minimal(base_size = text_size) 
 
       # theme_bw()

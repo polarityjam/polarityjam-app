@@ -263,6 +263,7 @@ ui <- navbarPage(
         ),
         numericInput("text_size_corr", "text size", value = 12, min = 4, max = 50, step = 1),
         numericInput("marker_size_corr", "marker size", value = 3, min = 1, max = 20, step = 1),
+        numericInput("marker_alpha_corr", "marker transparency", value = 0.5, min = 0.0, max = 1.0, step = 0.05),
         numericInput("plot_height_corr", "Height (# pixels): ", value = 600),
         numericInput("plot_width_corr", "Width (# pixels):", value = 800),
         checkboxInput("header_image", "File upload", TRUE),
