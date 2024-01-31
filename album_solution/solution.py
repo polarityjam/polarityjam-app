@@ -2,7 +2,7 @@ from album.runner.api import setup
 
 glob_ip = ""
 
-env_file = """name: Polarity-JaM App
+env_file = """name: Polarity-JaM-App
 channels:
   - conda-forge
   - defaults
