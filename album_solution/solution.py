@@ -2,28 +2,32 @@ from album.runner.api import setup
 
 glob_ip = ""
 
-env_file = """name: Polarityjam-R-Shiny-App-Solution
+env_file = """name: Polarity-JaM App
 channels:
   - conda-forge
   - defaults
   - r
 dependencies:
-  - python=3.8.13
+  - python=3.8
   - pip
   - git=2.34
-  - r-essentials=3.6
-  - r-base=3.6
-  - r-shinyfiles=0.9
-  - r-circular=0.4
-  - r-shape=1.4.6
-  - r-shinyWidgets=0.4.9
-  - r-gridExtra=2.3
-  - r-FNN=1.1.3
-  - r-CircStats=0.2.6
+  - r-base=4.0.5
+  - r-shiny=1.6.0
+  - r-shinyfiles=0.9.0
+  - r-shinycssloaders=1.0.0
+  - r-shinyWidgets=0.6.0
+  - r-optparse=1.7.1
+  - r-ggplot2=3.3.3
+  - r-tidyverse=1.3.0
+  - r-circular=0.4_93
+  - r-gridextra=2.3
+  - r-circstats=0.2_6
+  - r-readxl=1.3.1
+  - r-jsonlite=1.7.2
   - r-rjson=0.2.20
-  - r-shinycssloaders-0.2.0
   - pip:
     - GitPython==3.1
+    - rpy2
   
 """
 
@@ -32,25 +36,29 @@ def install():
     from album.runner.api import get_package_path
     from git import Repo
     from pathlib import Path
-    import subprocess
-    import sys
     import os
-    print("Installing polarityjam and dependencies")
+    print("Installing the Polarity-JaM app")
     polarityjam_repo = Path(get_package_path()).joinpath('polarityjam_app')
     os.mkdir(polarityjam_repo)
     Repo.clone_from("https://github.com/polarityjam/polarityjam-app.git", polarityjam_repo)
-    subprocess.check_call(
-        [sys.executable, "-m", "pip", "install", "-e", Path(polarityjam_repo).joinpath('polarityjam_app')])
+
+    # install pacman via CRAN - package mandatory, but not in R channel available
+    from rpy2.robjects.packages import importr
+    utils = importr('utils')
+    utils.install_packages('pacman', repos="https://cloud.r-project.org")
 
 
 def run():
     from album.runner.api import get_package_path
     from io import StringIO
     import os
+    import sys
     from pathlib import Path
-    from subprocess import Popen, CREATE_NEW_CONSOLE
-    import subprocess
-    import platform
+    from subprocess import Popen
+    if sys.platform == "win32":
+        from subprocess import CREATE_NEW_CONSOLE
+    else:
+        CREATE_NEW_CONSOLE = 0
     import webbrowser
     import re
     import threading
@@ -105,33 +113,44 @@ def run():
                 pass
 
     # Path to R-Shiny-App
-    polarityjam_repo = Path(get_package_path()).joinpath('polarityjam', 'app')
-    tmp_str = ""
-
-    # Pipe to pipe the output of the R-Shiny subprocess into a buffer StringIO which can be accessed
-    logpipe = LogPipe()
+    polarityjam_app_path = Path(get_package_path()).joinpath('polarityjam_app', 'app', 'app.R')
+    os.chdir(str(polarityjam_app_path.parent.resolve()))
 
     # regular expression to filter R-Shiny output for the IP of the App
     global glob_ip
     regex_ip = re.compile(r'http://[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+')
 
+    # special Pipe to access its communicated values
+    logpipe = LogPipe()
+
     # start the R-Shiny-App in a subprocess
-    if platform.system() == 'Windows':
-        process = Popen(["Rscript", Path(polarityjam_repo).joinpath('app.R')], creationflags=CREATE_NEW_CONSOLE,
-                        stdout=logpipe, stderr=logpipe)
-    else:
-        process = subprocess.run(["Rscript", Path(polarityjam_repo).joinpath('app.R')], stdout=logpipe, stderr=logpipe,
-                                 shell=True)
+    process = Popen(
+        ["Rscript", str(polarityjam_app_path)],
+        creationflags=CREATE_NEW_CONSOLE,
+        stdout=logpipe,
+        stderr=logpipe
+    )
 
     # While the subprocess runs the output gets filtered for the Ip of the App. If found a webbrowser will be opened
     while process.poll() == None:
         tmp_str = str(logpipe.buffer.getvalue())
         regex_match = regex_ip.search(tmp_str)
         if regex_match:
+            print(tmp_str)  # print all we got so far
             glob_ip = regex_match.group()
             webbrowser.open(glob_ip, new=1)
             break
+
+    # case error during starting
+    if process.poll() != None:  # process should not have terminated by now
+        print(str(logpipe.buffer.getvalue()))  # print the error
+
+    # close special pipe
     logpipe.close()
+
+    # report as normal
+    for line in iter(logpipe.pipeReader.readline, ''):
+        print(line)
 
 
 def prepare_test():
@@ -139,7 +158,6 @@ def prepare_test():
 
 
 def test():
-    from album.runner.api import setup, get_args
     import urllib.request
     global glob_ip
     # Test if the App is live
@@ -155,10 +173,10 @@ setup(
     version="0.1.0",
     title="Polarityjam R-Shiny App Solution",
     description="A Solution to run the Polarityjam R Shiny App.",
-    authors=["Lucas Rieckert", "Jan Philipp Albrecht"],
+    solution_creators=["Lucas Rieckert", "Jan Philipp Albrecht"],
     cite=[{
-        "text": "Your first citation text",
-        "doi": "your first citation doi"
+        "text": "Polarity-JaM: An image analysis toolbox for cell polarity, junction and morphology quantification",
+        "doi": "10.1101/2024.01.24.577027"
     }],
     tags=[
         "polarityjam",
