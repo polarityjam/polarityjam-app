@@ -168,7 +168,7 @@ def test():
 
 
 setup(
-    group="album",
+    group="de.mdc-berlin",
     name="polarityjam-app",
     version="0.1.0",
     title="Polarityjam R-Shiny App Solution",
