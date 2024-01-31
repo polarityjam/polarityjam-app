@@ -1,4 +1,4 @@
-from album.runner.api import setup, get_args
+from album.runner.api import setup
 
 glob_ip = ""
 
@@ -29,22 +29,22 @@ dependencies:
 
 
 def install():
-    from album.runner.api import setup, get_args , get_package_path
+    from album.runner.api import get_package_path
     from git import Repo
     from pathlib import Path
     import subprocess
     import sys
     import os
     print("Installing polarityjam and dependencies")
-    polarityjam_repo = Path(get_package_path()).joinpath('polarityjam')
+    polarityjam_repo = Path(get_package_path()).joinpath('polarityjam_app')
     os.mkdir(polarityjam_repo)
-    Repo.clone_from("https://github.com/wgiese/vascu-ec-app",polarityjam_repo)
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", Path(polarityjam_repo).joinpath('polarityjam')])
+    Repo.clone_from("https://github.com/polarityjam/polarityjam-app.git", polarityjam_repo)
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "-e", Path(polarityjam_repo).joinpath('polarityjam_app')])
 
 
 def run():
-    from album.runner.api import setup, get_args , get_package_path
-    import sys
+    from album.runner.api import get_package_path
     from io import StringIO
     import os
     from pathlib import Path
@@ -54,11 +54,11 @@ def run():
     import webbrowser
     import re
     import threading
-  
+
     class LogPipe(threading.Thread):
 
         # Class adapted from GitHub: https://gist.github.com/alfredodeza/dcea71d5c0234c54d9b1
-    
+
         def __init__(self):
             """Setup the object with a logger and a loglevel
             and start the thread
@@ -71,29 +71,28 @@ def run():
             self.process = None
             self.start()
             self.buffer = StringIO()
-    
-    
+
         def fileno(self):
             """Return the write file descriptor of the pipe
             """
             return self.fdWrite
-    
+
         def run(self):
             """Run the thread, logging everything.
             """
             for line in iter(self.pipeReader.readline, ''):
                 self.buffer.write(line)
             self.pipeReader.close()
-    
+
         def close(self):
             """Close the write end of the pipe.
             """
             os.close(self.fdWrite)
-    
+
         def stop(self):
             self._stop = True
             self.close()
-    
+
         def __del__(self):
             try:
                 self.stop()
@@ -104,52 +103,55 @@ def run():
                 del self.fdWrite
             except:
                 pass
-    
-    #Path to R-Shiny-App
-    polarityjam_repo = Path(get_package_path()).joinpath('polarityjam','app')
+
+    # Path to R-Shiny-App
+    polarityjam_repo = Path(get_package_path()).joinpath('polarityjam', 'app')
     tmp_str = ""
-    
-    #Pipe to pipe the output of the R-Shiny subprocess into a buffer StringIO which can be accessed
+
+    # Pipe to pipe the output of the R-Shiny subprocess into a buffer StringIO which can be accessed
     logpipe = LogPipe()
-    
-    #regular expression to filter R-Shiny output for the IP of the App
+
+    # regular expression to filter R-Shiny output for the IP of the App
     global glob_ip
     regex_ip = re.compile(r'http://[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+')
-    
-    #start the R-Shiny-App in a subprocess
+
+    # start the R-Shiny-App in a subprocess
     if platform.system() == 'Windows':
-        process = Popen(["Rscript", Path(polarityjam_repo).joinpath('app.R')], creationflags=CREATE_NEW_CONSOLE,stdout=logpipe,stderr=logpipe)
+        process = Popen(["Rscript", Path(polarityjam_repo).joinpath('app.R')], creationflags=CREATE_NEW_CONSOLE,
+                        stdout=logpipe, stderr=logpipe)
     else:
-        process = subprocess.run(["Rscript", Path(polarityjam_repo).joinpath('app.R')],stdout=logpipe,stderr=logpipe,shell=True)
-    
-    #While the subprocess runs the output gets filtered for the Ip of the App. If found a webbrowser will be opened
-    while process.poll()==None:
+        process = subprocess.run(["Rscript", Path(polarityjam_repo).joinpath('app.R')], stdout=logpipe, stderr=logpipe,
+                                 shell=True)
+
+    # While the subprocess runs the output gets filtered for the Ip of the App. If found a webbrowser will be opened
+    while process.poll() == None:
         tmp_str = str(logpipe.buffer.getvalue())
         regex_match = regex_ip.search(tmp_str)
         if regex_match:
             glob_ip = regex_match.group()
-            webbrowser.open(glob_ip,new=1)
+            webbrowser.open(glob_ip, new=1)
             break
-    logpipe.close()    
- 
-  
+    logpipe.close()
+
+
 def prepare_test():
     return {}
 
 
 def test():
     from album.runner.api import setup, get_args
-    import urllib.request 
+    import urllib.request
     global glob_ip
-    #Test if the App is live
+    # Test if the App is live
     if urllib.request.urlopen(glob_ip).getcode() == 200:
         print("Polarityjam R-shiny App succesfully started. Test succesfull!")
     else:
         print("Polarityjam R-shiny App could not be started. Test failed!")
 
+
 setup(
     group="album",
-    name="Polarityjam-r-shiny",
+    name="polarityjam-app",
     version="0.1.0",
     title="Polarityjam R-Shiny App Solution",
     description="A Solution to run the Polarityjam R Shiny App.",
@@ -158,21 +160,19 @@ setup(
         "text": "Your first citation text",
         "doi": "your first citation doi"
     }],
-    tags=["polarityjam", "r","shiny","app"],
-    license="UNLICENSE",
-    documentation="",
-    covers=[{
-        "description": "Dummy cover image.",
-        "source": "cover.png"
-    }],
-    album_api_version="0.3.1",
-    args=[{        
-        "name": "dummy arg",
-        "type": "string",
-        "default": "1",
-        "description": "Nothing. Only here because a solutions needs at least one argument.",
-		}       
+    tags=[
+        "polarityjam",
+        "cell polarity",
+        "circular statistics",
+        "endothelial cells",
+        "workflow",
+        "software",
+        "shiny"
     ],
+    license="MIT",
+    documentation=["doc.md"],
+    covers=[{"description": "Polarityjam app cover image", "source": "cover.png"}],
+    album_api_version="0.5.5",
     install=install,
     run=run,
     pre_test=prepare_test,
