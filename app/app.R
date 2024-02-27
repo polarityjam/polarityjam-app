@@ -88,12 +88,8 @@ ui <- navbarPage(
           checkboxInput("header_correlation", "File upload", TRUE),
         ),
 
-        # the data frame can be sub-sampled by selecting only every n-th row. 
-        checkboxInput("subsample_data", "Subsample data", FALSE),
-        conditionalPanel(
-          condition = "input.subsample_data == true",
-          numericInput("subsample_n", "Select every n-th row:", value = 1, min = 1, max = 50, step = 1)
-        ),
+        radioButtons("circ_units", "Circular units:", choices = list("radians", "degree"), selected = "radians"),
+
 
         #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
@@ -113,6 +109,13 @@ ui <- navbarPage(
         conditionalPanel(
           condition = "input.group_samples == true",
           selectInput("sample_col", "Identifier of samples", choices = ""),
+        ),
+        
+        # the data frame can be sub-sampled by selecting only every n-th row. 
+        checkboxInput("subsample_data", "Subsample data", FALSE),
+        conditionalPanel(
+          condition = "input.subsample_data == true",
+          numericInput("subsample_n", "Select every n-th row:", value = 1, min = 1, max = 50, step = 1)
         ),
         
         downloadButton("downloadFilteredData", "Download filtered data")
