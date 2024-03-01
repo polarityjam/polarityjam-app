@@ -374,7 +374,6 @@ server <- function(input, output, session) {
 
     }
 
-    data_df <- na.omit(data_df)
     data_df
   })
 
@@ -530,6 +529,9 @@ server <- function(input, output, session) {
       df_processed <- data_filtered()
     }
     
+    df_processed <- df_processed[, colSums(is.na(df_processed)) != nrow(df_processed)]
+    df_processed <- na.omit(df_processed)
+
     df_processed 
   })
 
