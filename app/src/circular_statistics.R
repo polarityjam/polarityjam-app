@@ -30,6 +30,14 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+degrees_to_radians <- function(degrees) {
+  return(degrees * pi / 180.0)
+}
+
+radians_to_degrees <- function(radians) {
+  return(radians * 180.0 / pi)
+}
+
 compute_mean <- function(data, stats_mode) {
 
   
