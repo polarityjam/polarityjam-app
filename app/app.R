@@ -92,7 +92,6 @@ ui <- navbarPage(
 
         radioButtons("circ_units", "Circular units:", choices = list("radians", "degree"), selected = "radians"),
 
-
         #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
         selectInput("condition_col", "Identifier of conditions", choices = ""),
@@ -510,6 +509,18 @@ server <- function(input, output, session) {
             mean_list_1 = c()
             mean_list_2 = c()
             
+            #TODO: add support for axial and linear data
+            #TODO: supper selections of degrees or radians
+            if (input$circ_units == "radians") {
+              x_data = radians_to_degrees(unlist(df_single_cond[input$feature_select]))
+              x_data_1 = radians_to_degrees(unlist(df_single_cond[input$feature_select_1]))
+              x_data_2 = radians_to_degrees(unlist(df_single_cond[input$feature_select_2]))
+            } else {
+              x_data = unlist(df_single_cond[input$feature_select])*pi/180.0
+              x_data_1 = unlist(df_single_cond[input$feature_select_1])*pi/180.0
+              x_data_2 = unlist(df_single_cond[input$feature_select_2])*pi/180.0
+            }           
+
             for(i in 1:num_samples) {       # for-loop over columns
               df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
               mean_list =  append(mean_list, compute_mean(unlist(df_sample[input$feature_select]),input$stats_mode))
@@ -655,17 +666,30 @@ server <- function(input, output, session) {
 
     if (input$stats_mode == "directional") {
 
-      x_data <- unlist(data[feature]) * 180.0 / pi
+      if (input$circ_units == "radians") {
+        x_data <- radians_to_degrees(unlist(data[feature]))
+      } else {
+        x_data <- unlist(data[feature])
+      }
+
+      #x_data <- unlist(data[feature]) * 180.0 / pi
       statistics <- compute_directional_statistics(data, feature, parameters)
 
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
 
     } else if (input$stats_mode == "axial") {
-
+      
       x_data <- data[feature]
+      # TODO: add support for radians/degrees in stats analyis
       statistics <- compute_axial_statistics(data, feature, parameters)
-      x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
+      if (input$circ_units == "radians") {
+        x_data <- radians_to_degrees(unlist(transform_axial(input, x_data)))
+      }
+      else {
+        x_data <- unlist(transform_axial(input, x_data))
+      }
+      #x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
       p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, 0, text_size)
     } else {
@@ -675,7 +699,8 @@ server <- function(input, output, session) {
       p <- linear_histogram(parameters, input, statistics, x_data, plot_title, 0, text_size, min(x_data), max(x_data))
     }
 
-    p
+    # return the plot
+    return(p)
   })
 
   width_A <- reactive({
@@ -712,8 +737,8 @@ server <- function(input, output, session) {
     text_size <- input$text_size
 
     i <- 1
-    angle_dists <- list()
-    file_names <- list()
+    #angle_dists <- list()
+    condition_names <- list()
     polarity_indices <- list()
     angle_mean_degs <- list()
 
@@ -731,42 +756,50 @@ server <- function(input, output, session) {
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
     
     for (condition in condition_list) {
-      #results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
+      #results_df <- subset(results_all_df, results_all_df[condition_col] == condition_name)
       results_df <- results_all_df[results_all_df[condition_col] == condition,]
-      x <- unlist(results_df[feature])
-      angle_dists[[i]] <- x
-      file_names[[i]] <- condition
+      #x <- unlist(results_df[feature])
+      #angle_dists[[i]] <- x
+      condition_names[[i]] <- condition
       i <- i + 1
     }
 
-    n <- length(angle_dists)
+    n <- length(condition_names)
     nCol <- floor(sqrt(n))
 
     bin_size <- 360 / input$bins
 
     plotseries <- function(i) {
-      angle_dist <- angle_dists[[i]]
-      file_name <- file_names[[i]]
+      #angle_dist <- angle_dists[[i]]
+      condition_name <- condition_names[[i]]
 
-      results_df <- results_all_df[results_all_df[condition_col] == file_name,]
+      results_df <- results_all_df[results_all_df[condition_col] == condition_name,]
       
-      plot_title <- file_name
+      plot_title <- condition_name
 
-      if (nchar(file_name) > 37) {
+      if (nchar(condition_name) > 37) {
         max_fl <- 17
-        file_name_end <- substr(file_name, nchar(file_name) - max_fl + 1, nchar(file_name))
-        file_name_start <- substr(file_name, 1, max_fl)
-        plot_title <- paste0(file_name_start, "...", file_name_end)
+        condition_name_end <- substr(condition_name, nchar(condition_name) - max_fl + 1, nchar(condition_name))
+        condition_name_start <- substr(condition_name, 1, max_fl)
+        plot_title <- paste0(condition_name_start, "...", condition_name_end)
       }
 
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
-        x_data <- unlist(results_df[feature]) * 180.0 / pi
+        if (input$circ_units == "radians") {
+          x_data <- unlist(results_df[feature]) * 180.0 / pi
+        } else {
+          x_data <- unlist(results_df[feature])
+        }
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
         statistics <- compute_axial_statistics(results_df, feature, parameters)
-        x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
+        if (input$circ_units == "radians") {
+          x_data <- unlist(results_df[feature]) * 180.0 / pi
+        } else {
+          x_data <- unlist(results_df[feature])
+        }
         p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
@@ -776,9 +809,9 @@ server <- function(input, output, session) {
     }
 
 
-    myplots <- lapply(1:length(angle_dists), plotseries)
+    myplots <- lapply(1:length(condition_names), plotseries)
 
-    grid.arrange(grobs = myplots, nrow = nCol) 
+    return(grid.arrange(grobs = myplots, nrow = nCol)) 
   })
 
   output$multi_dist_plot <- renderPlot(width = width_A, height = height_A, {
@@ -1478,14 +1511,27 @@ server <- function(input, output, session) {
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
-        x_data <- unlist(results_df[feature]) * 180.0 / pi
+        if (input$circ_units == "radians") {
+          x_data <- unlist(results_df[feature]) * 180.0 / pi
+        } else {
+          x_data <- unlist(results_df[feature])
+        }
+        #x_data <- unlist(results_df[feature]) * 180.0 / pi
+        
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
         statistics <- compute_axial_statistics(results_df, feature, parameters)
-        x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
+
+        if (input$circ_units == "radians") {
+          x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
+        }
+        else {
+          x_data <- unlist(transform_axial(input, x_data))
+        }
+        
 
         p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
