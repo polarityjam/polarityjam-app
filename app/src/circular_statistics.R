@@ -108,6 +108,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
   "
 
   circular_data <- unlist(data[feature])
+  circular_data <- circular_unit_conversion(circular_data, input, "radians")
   sin_sum <- 0.0
   cos_sum <- 0.0
   polarity_index <- 0.0
@@ -243,6 +244,7 @@ compute_axial_statistics <- function(data, feature, parameters) {
 
   p_directional_data <- unlist(data[feature])
   circular_data <- unlist(data[feature])
+  circular_data <- circular_unit_conversion(circular_data, input, "radians")
 
   sin_sum <- 0.0
   cos_sum <- 0.0
