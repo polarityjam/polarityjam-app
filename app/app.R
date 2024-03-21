@@ -29,7 +29,7 @@
 # SOFTWARE.
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-options(shiny.maxRequestSize = 30 * 1024^2) # upload size is limited to 30 MB
+options(shiny.maxRequestSize = 100 * 1024^2) # upload size is limited to 100 MB
 
 if (!require("pacman")) install.packages ("pacman")
 require('pacman')
@@ -379,8 +379,9 @@ server <- function(input, output, session) {
 
     }
 
-    data_df <- na.omit(data_df)
-    data_df
+    #data_df <- na.omit(data_df)
+    #print(head(data_df))
+    return(data_df)
   })
 
   observe({
@@ -511,15 +512,19 @@ server <- function(input, output, session) {
             
             #TODO: add support for axial and linear data
             #TODO: supper selections of degrees or radians
-            if (input$circ_units == "radians") {
-              x_data = radians_to_degrees(unlist(df_single_cond[input$feature_select]))
-              x_data_1 = radians_to_degrees(unlist(df_single_cond[input$feature_select_1]))
-              x_data_2 = radians_to_degrees(unlist(df_single_cond[input$feature_select_2]))
-            } else {
-              x_data = unlist(df_single_cond[input$feature_select])*pi/180.0
-              x_data_1 = unlist(df_single_cond[input$feature_select_1])*pi/180.0
-              x_data_2 = unlist(df_single_cond[input$feature_select_2])*pi/180.0
-            }           
+            x_data = circular_unit_conversion(unlist(df_single_cond[input$feature_select]),input,target = "radians")
+            x_data_1 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_1]),input,target = "radians")
+            x_data_2 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_2]),input,target = "radians")
+
+            #if (input$circ_units == "radians") {
+            #  x_data = radians_to_degrees(unlist(df_single_cond[input$feature_select]))
+            #  x_data_1 = radians_to_degrees(unlist(df_single_cond[input$feature_select_1]))
+            #  x_data_2 = radians_to_degrees(unlist(df_single_cond[input$feature_select_2]))
+            #} else {
+            #  x_data = unlist(df_single_cond[input$feature_select])*pi/180.0
+            #  x_data_1 = unlist(df_single_cond[input$feature_select_1])*pi/180.0
+            #  x_data_2 = unlist(df_single_cond[input$feature_select_2])*pi/180.0
+            #}           
 
             for(i in 1:num_samples) {       # for-loop over columns
               df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
@@ -1405,6 +1410,7 @@ server <- function(input, output, session) {
     data <- data_filtered()
 
     # if (is.data.frame(data)) {
+    #TODO: check if condition_col and numeric columns are present in data
     if (length(colnames(data)) > 3) {
       print("Unique condition names: ")
       # print(data[condition_col])
