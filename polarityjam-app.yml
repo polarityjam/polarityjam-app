@@ -7,6 +7,7 @@ dependencies:
   - python=3.8
   - pip
   - r-base=4.0.5
+  - r-pacman=0.5.1
   - r-shiny=1.6.0
   - r-shinyfiles=0.9.0
   - r-shinycssloaders=1.0.0

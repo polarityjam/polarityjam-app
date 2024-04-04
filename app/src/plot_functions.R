@@ -314,7 +314,7 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   v_score <- signif(statistics[1, "V_score"], digits = 3)
-  v_proj <- signif(statistics[1, "V_proj"], digits = 3)
+  #v_proj <- signif(statistics[1, "V_proj"], digits = 3)
   
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
   if (statistics[1, "rayleigh_test"] < 0.001) {
@@ -422,8 +422,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
   if (input$plot_polar_direction) {
     mu0 <- input$cond_mean_direction
     p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "gray", arrow = NULL) + theme(legend.position = "none")
-    v_proj_ <- abs(v_proj)
-    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_proj_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+    v_score_ <- abs(v_score)
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
   }
 
 
@@ -478,8 +478,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     if (input$plot_polar_direction) {
       #mu0 <- input$cond_mean_direction + 180
       p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "gray", arrow = NULL) + theme(legend.position = "none")
-      v_proj_ <- abs(v_proj)
-      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_proj_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+      v_score_ <- abs(v_score)
+      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
     }
     
     if (input$plot_PI) {
