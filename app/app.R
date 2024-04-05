@@ -58,12 +58,12 @@ vals <- reactiveValues(count = 0)
 # include html file
 shiny::addResourcePath("about", "www")
 
-###### UI: User interface #########
+# UI: User interface ---------------------------
 
 ui <- navbarPage(
   "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
 
-   ### Panel A: Data upload and preparation
+# Panel A: Data upload and preparation ---------------------------
 
   tabPanel(
     "Data preparation",
@@ -90,7 +90,7 @@ ui <- navbarPage(
           checkboxInput("header_correlation", "File upload", TRUE),
         ),
 
-        radioButtons("circ_units", "Circular units:", choices = list("radians", "degree"), selected = "radians"),
+        radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
 
         #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
@@ -131,8 +131,7 @@ ui <- navbarPage(
     )
   ),
 
-
-  # Panel B: Plot data ---------------------------
+# Panel B: Plot data ---------------------------
 
   tabPanel(
     "Plot data",
@@ -152,7 +151,7 @@ ui <- navbarPage(
         checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
         checkboxInput("scatter_plot", "Scatter plot", TRUE),
         checkboxInput("histogram_plot", "Histogram plot", TRUE),
-        checkboxInput("kde_plot", "KDE plot", FALSE),
+        #checkboxInput("kde_plot", "KDE plot", FALSE),
         conditionalPanel(
           condition = "input.histogram_plot == true",
           sliderInput("bins",
@@ -174,12 +173,10 @@ ui <- navbarPage(
           )
         ),
         numericInput("cond_mean_direction",
-                      "Polar direction for V-test and V-score",
+                      "Polar direction for V-test and V-score (degrees)",
                       value = 0
                     ),
         checkboxInput("plot_polar_direction", "Plot polar vector and V-score", FALSE),
-
-
         conditionalPanel(
           condition = "input.stats_mode == 'axial'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
@@ -375,7 +372,7 @@ server <- function(input, output, session) {
 
     } else {
 
-        data_df <- data.frame()
+      data_df <- data.frame()
 
     }
 
@@ -475,14 +472,12 @@ server <- function(input, output, session) {
       df_filtered <- df_filtered[df_filtered[input$filter_column] < input$max_value, ]
     }
     
-    df_filtered
+    return(df_filtered)
   })
   
   data_processed <- reactive({
     df_processed  <- NULL
     data <- data_filtered()
-    
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     
     if (input$group_samples == TRUE) {
       
@@ -514,16 +509,6 @@ server <- function(input, output, session) {
             x_data_1 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_1]),input,target = "radians")
             x_data_2 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_2]),input,target = "radians")
 
-            #if (input$circ_units == "radians") {
-            #  x_data = radians_to_degrees(unlist(df_single_cond[input$feature_select]))
-            #  x_data_1 = radians_to_degrees(unlist(df_single_cond[input$feature_select_1]))
-            #  x_data_2 = radians_to_degrees(unlist(df_single_cond[input$feature_select_2]))
-            #} else {
-            #  x_data = unlist(df_single_cond[input$feature_select])*pi/180.0
-            #  x_data_1 = unlist(df_single_cond[input$feature_select_1])*pi/180.0
-            #  x_data_2 = unlist(df_single_cond[input$feature_select_2])*pi/180.0
-            #}           
-
             for(i in 1:num_samples) {       # for-loop over columns
               df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
               mean_list =  append(mean_list, compute_mean(unlist(df_sample[input$feature_select]),input$stats_mode))
@@ -553,7 +538,7 @@ server <- function(input, output, session) {
     df_processed <- df_processed[, colSums(is.na(df_processed)) != nrow(df_processed)]
     df_processed <- na.omit(df_processed)
 
-    df_processed 
+    return(df_processed) 
   })
 
 
@@ -633,17 +618,21 @@ server <- function(input, output, session) {
 
     for (condition in condition_list) {
       condition_data <- data_df[data_df[condition_col] == condition,]
-      if (input$circ_units == "radians") {
-        x_data <- radians_to_degrees(unlist(condition_data[feature]))
-      } else {
-        x_data <- unlist(condition_data[feature]) 
-      }
+      
+      #if (input$circ_units == "radians") {
+      #  x_data <- radians_to_degrees(unlist(condition_data[feature]))
+      #} else {
+      #  x_data <- unlist(condition_data[feature]) 
+      #}
+      
+      x_data <- circular_unit_conversion(unlist(condition_data[feature]), input, target = "degrees")
+
       statistics <- compute_statistics(condition_data, feature, parameters)
       t_statistics = t(statistics)
       statistics_df[,condition] <- t_statistics[,1]
     }
 
-    statistics_df
+    return(statistics_df)
   })
 
   output$summaryStatisticsTable <- renderTable(    {
@@ -672,11 +661,13 @@ server <- function(input, output, session) {
 
     if (input$stats_mode == "directional") {
 
-      if (input$circ_units == "radians") {
-        x_data <- radians_to_degrees(unlist(data[feature]))
-      } else {
-        x_data <- unlist(data[feature])
-      }
+      #if (input$circ_units == "radians") {
+      #  x_data <- radians_to_degrees(unlist(data[feature]))
+      #} else {
+      #  x_data <- unlist(data[feature])
+      #}
+
+      x_data <- circular_unit_conversion(unlist(data[feature]), input, target = "degrees")
 
       #x_data <- unlist(data[feature]) * 180.0 / pi
       statistics <- compute_directional_statistics(data, feature, parameters)
@@ -689,12 +680,13 @@ server <- function(input, output, session) {
       # TODO: add support for radians/degrees in stats analyis
       statistics <- compute_axial_statistics(data, feature, parameters)
 
-      if (input$circ_units == "radians") {
-        x_data <- radians_to_degrees(unlist(transform_axial(input, x_data)))
-      }
-      else {
-        x_data <- unlist(transform_axial(input, x_data))
-      }
+      #if (input$circ_units == "radians") {
+      #  x_data <- radians_to_degrees(unlist(transform_axial(input, x_data)))
+      #}
+      #else {
+      #  x_data <- unlist(transform_axial(input, x_data))
+      #}
+      x_data <- circular_unit_conversion(transform_axial(input, x_data), input, target = "degrees")
       #x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
       p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, 0, text_size)
@@ -720,7 +712,7 @@ server <- function(input, output, session) {
     parameters <- fromJSON(file = "parameters/parameters.json")
 
     p <- merged_plot()
-    p
+    return(p)
  
   })
 
@@ -979,8 +971,7 @@ server <- function(input, output, session) {
   })
 
   plot_correlation <- reactive({
-    
-    
+        
     parameters <- fromJSON(file = "parameters/parameters.json")
     
     text_size <- input$text_size_corr
