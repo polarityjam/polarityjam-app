@@ -91,6 +91,8 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
 
   bin_size <- 360 / input$bins
   
+  #statistics <- as.data.frame(t(statistics))
+
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   v_score <- signif(statistics[1, "V_score"], digits = 3)
 

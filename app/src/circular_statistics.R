@@ -174,6 +174,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
   ci_50_lower_limit <- transform_rad_degrees(ci_50_res$mu.ci[[1]], -pi, pi, 0.0, 360.0)
   ci_50_upper_limit <- transform_rad_degrees(ci_50_res$mu.ci[[2]], -pi, pi, 0.0, 360.0)
 
+  #values <- c(
   values <- data.frame(
     "number of cells" = nrow(data),
     "polarity_index" = polarity_index,

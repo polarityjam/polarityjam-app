@@ -90,7 +90,7 @@ ui <- navbarPage(
           checkboxInput("header_correlation", "File upload", TRUE),
         ),
 
-        radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
+        #radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
 
         #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
@@ -142,9 +142,11 @@ ui <- navbarPage(
           choices = c("directional", "axial", "linear"),
           selected = "directional"
         ),
-        selectInput("stats_method", "Choose a stats test",
-          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
+        conditionalPanel(
+          condition = "input.stats_mode != 'linear'",
+          radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
         ),
+        #radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
         #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
         #),
@@ -161,6 +163,9 @@ ui <- navbarPage(
             value = 12
           ),
           checkboxInput("area_scaled", "Area scaled histogram", TRUE),
+        ),
+        selectInput("stats_method", "Choose a stats test",
+          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
         ),
         checkboxInput("ci_plot", "Confidence interval (CI)", TRUE),
         conditionalPanel(
@@ -190,6 +195,7 @@ ui <- navbarPage(
           condition = "input.select_colormap != 'gray'",
           numericInput("select_color", "Select a color from color scheme:", value = 1, min = 1, max = 10, step = 1),
         ),
+        #checkboxInput("cond_as_color", "Condition as color", FALSE),
         checkboxInput("adjust_alpha", "Adjust transparency", FALSE),
         conditionalPanel(
           condition = "input.adjust_alpha == true",
@@ -242,10 +248,18 @@ ui <- navbarPage(
                     choices = c("directional", "axial", "linear"),
                     selected = "directional"
         ),
+        conditionalPanel(
+          condition = "input.stats_mode_1 != 'linear'",
+          radioButtons("circ_units_1", "Circular units (input 1):", choices = list("radians", "degrees"), selected = "radians"),
+        ),
         selectInput("feature_select_2", "Choose feature 2 (y-axis):", choices = ""),
         selectInput("stats_mode_2", "Data modality feature 2:",
                     choices = c("directional", "axial", "linear"),
                     selected = "directional"
+        ),
+        conditionalPanel(
+          condition = "input.stats_mode_2 != 'linear'",
+          radioButtons("circ_units_2", "Circular units (input 2):", choices = list("radians", "degrees"), selected = "radians"),
         ),
         selectInput("datasetSingleImage", "Download:",
           choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
