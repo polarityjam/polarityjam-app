@@ -57,13 +57,6 @@ select_color <- function(parameters, input, plot_nr) {
       color_n <- 1 + (plot_nr + input$select_color) %% length(Okabe_Ito)
     }
 
-    print("color number")
-    print(color_n)
-    print("plot_nr")
-    print(plot_nr)
-    print("number of colors")
-    print(length(Okabe_Ito))
-
     color <- Okabe_Ito[color_n]
   } else if (input$select_colormap == "Tol_bright") {
     if (plot_nr == 0) {
@@ -95,33 +88,36 @@ select_color <- function(parameters, input, plot_nr) {
 }
 
 rose_plot_circular <- function(parameters, input, statistics, feature_circular, plot_title, plot_nr = 0, text_size = 24) {
+
   bin_size <- 360 / input$bins
   
-  #print(plotted_feature)
-  print(feature_circular)
+  #statistics <- as.data.frame(t(statistics))
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   v_score <- signif(statistics[1, "V_score"], digits = 3)
 
-  p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
+  # Tests: "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test"
+
+  if (input$stats_method == "Rayleigh uniform") {
+    p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
+    if (statistics[1, "rayleigh_test"] < 0.001) {
+      p_value <- "P < 0.001"
+    } else {
+      p_value <- paste0("P = ", toString(p_value_))
+    }
+  }
+
   if (input$stats_method == "V-Test") {
     p_value_ <- signif(statistics[1, "v_test"], digits = 3)
   }
 
-
-  if (statistics[1, "rayleigh_test"] < 0.001) {
-    p_value <- "P < 0.001"
-  } else {
-    p_value <- paste0("P = ", toString(p_value_))
+  if (input$stats_method == "Watson's Test") {
+    p_value <- statistics[1, "watson_test"]
   }
 
-  #if (input$stats_method == "Watson's Test") {
-  #  p_value <- statistics[1, "watson_test"]
-  #}
   if (input$stats_method == "Rao's Test") {
     p_value <- statistics[1, "rao_test"]
   }
-
 
   p <- ggplot()
 
@@ -139,15 +135,14 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
     }
   }
 
-
-  if (input$kde_plot) {
-    p <- p +
-      geom_density(aes(x = feature_circular, y = ..count.. / max(..count..)),
-        color = color,
-        fill = color_fill,
-        alpha = alpha
-      )
-  }
+  #if (input$kde_plot) {
+  #  p <- p +
+  #    geom_density(aes(x = feature_circular, y = ..count.. / max(..count..)),
+  #      color = color,
+  #      fill = color_fill,
+  #      alpha = alpha
+  #    )
+  #}
 
   if (input$histogram_plot) {
     p <- p +
@@ -201,7 +196,6 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
     p <- p + geom_segment(data = statistics, aes(x = mean, y = 0, xend = mean, yend = polarity_index,  size = 3.0, color = "red"), arrow = arrow()) + theme(legend.position = "none")   
   }
   
-  
   if (input$plot_polar_direction) {
     v_score_ <- abs(v_score)
     mu0_ <- mu0
@@ -210,7 +204,6 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
     p <- p + geom_segment(data = statistics, aes(x = mu0_, y = 0, xend = mu0_, yend = v_score_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
   }
 
-    
   if (input$ci_plot) {
     if (input$ci_method == "95% CI of the mean") {
       p <- p + geom_segment(data = statistics, aes(x = ci_95_lower_limit, y = 0, xend = ci_95_lower_limit, yend = 1), size = 1.5, color = "red", linetype = "dashed", arrow = NULL) + theme(legend.position = "none")
@@ -240,9 +233,6 @@ rose_plot_circular <- function(parameters, input, statistics, feature_circular, 
 compare_plot_circular <- function(parameters, input, statistics, feature_circular_1, feature_circular_2, plot_title, text_size = 24) {
   bin_size <- 360 / input$bins_comparison
 
-  # feature <- parameters[input$feature_select][[1]][1]
-  # plot_title <- parameters[input$feature_select][[1]][3]
-
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
   if (statistics[1, "rayleigh_test"] < 0.001) {
@@ -250,7 +240,6 @@ compare_plot_circular <- function(parameters, input, statistics, feature_circula
   } else {
     p_value <- paste0("p = ", toString(p_value_))
   }
-
 
   p <- ggplot()
 
@@ -293,13 +282,9 @@ compare_plot_circular <- function(parameters, input, statistics, feature_circula
     xlab(sprintf("N = %s \n polarity index: %s, %s", length(feature_circular_1), polarity_index, p_value)) +
     ylab("polarity index")
   
-  
-  # theme(axis.text.y=element_blank()) +
-
   if (input$area_scaled) {
     p <- p + scale_y_sqrt()
   }
-
 
   # p <- p + geom_segment(data = statistics, aes(x=mean, y=0, xend=mean, yend=polarity_index, size = 1.5, color="red", lineend = "butt"), arrow = arrow()) + theme(legend.position = "none")
 
@@ -314,7 +299,7 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
   polarity_index <- signif(statistics[1, "polarity_index"], digits = 3)
   v_score <- signif(statistics[1, "V_score"], digits = 3)
-  v_proj <- signif(statistics[1, "V_proj"], digits = 3)
+  #v_proj <- signif(statistics[1, "V_proj"], digits = 3)
   
   p_value_ <- signif(statistics[1, "rayleigh_test"], digits = 3)
   if (statistics[1, "rayleigh_test"] < 0.001) {
@@ -346,14 +331,14 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
   p <- ggplot()
 
-  if (input$kde_plot) {
-    p <- p +
-      geom_density(aes(x = feature_circular_, y = ..count.. / max(..count..)),
-                   color = color,
-                   fill = color_fill,
-                   alpha = alpha
-      )
-  }
+  #if (input$kde_plot) {
+  #  p <- p +
+  #    geom_density(aes(x = feature_circular_, y = ..count.. / max(..count..)),
+  #                 color = color,
+  #                 fill = color_fill,
+  #                 alpha = alpha
+  #    )
+  #}
 
   if (input$histogram_plot) {
     p <- p +
@@ -422,8 +407,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
   if (input$plot_polar_direction) {
     mu0 <- input$cond_mean_direction
     p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "gray", arrow = NULL) + theme(legend.position = "none")
-    v_proj_ <- abs(v_proj)
-    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_proj_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+    v_score_ <- abs(v_score)
+    p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
   }
 
 
@@ -478,8 +463,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     if (input$plot_polar_direction) {
       #mu0 <- input$cond_mean_direction + 180
       p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = 1.0), size = 1.5, color = "gray", arrow = NULL) + theme(legend.position = "none")
-      v_proj_ <- abs(v_proj)
-      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_proj_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
+      v_score_ <- abs(v_score)
+      p <- p + geom_segment(data = statistics, aes(x = mu0, y = 0, xend = mu0, yend = v_score_), size = 3.0, color = "black", lineend = "square") + theme(legend.position = "none")#arrow = NULL, 
     }
     
     if (input$plot_PI) {
@@ -595,13 +580,13 @@ linear_histogram <- function(parameters, input, statistics, feature_linear, plot
     )
   }
 
-  if (input$kde_plot) {
-    p <- p + geom_density(aes(x = feature_linear, y = ..density..),
-      color = color,
-      fill = color_fill,
-      alpha = 0.5
-    )
-  }
+  #if (input$kde_plot) {
+  #  p <- p + geom_density(aes(x = feature_linear, y = ..density..),
+  #    color = color,
+  #    fill = color_fill,
+  #    alpha = 0.5
+  #  )
+  #}
 
   p <- p + ggtitle(plot_title) +
     theme(axis.text.x = element_text(size = 18)) +
@@ -612,9 +597,6 @@ linear_histogram <- function(parameters, input, statistics, feature_linear, plot
   p <- p + xlim(c(x_start, x_end))
   return(p)
 }
-
-
-
 
 # linear_histogram <- function(parameters, input, statistics, feature_linear, plot_title, plot_nr = 0, text_size = 24) {
 #
@@ -647,9 +629,7 @@ linear_histogram <- function(parameters, input, statistics, feature_linear, plot
 #
 #    p <- p + geom_vline(data = statistics, aes(xintercept=mean),  col="red", size = 2)
 #    return(p)
-
 # }
-
 
 compare_plot_linear <- function(parameters, input, statistics, feature_linear_1, feature_linear_2, plot_title, text_size = 24) {
 

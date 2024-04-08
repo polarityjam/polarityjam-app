@@ -29,7 +29,7 @@
 # SOFTWARE.
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-options(shiny.maxRequestSize = 30 * 1024^2) # upload size is limited to 30 MB
+options(shiny.maxRequestSize = 100 * 1024^2) # upload size is limited to 100 MB
 
 if (!require("pacman")) install.packages ("pacman")
 require('pacman')
@@ -38,7 +38,6 @@ p_load(shiny,shinyFiles,shinycssloaders,circular,ggplot2,shinyWidgets,tools,grid
 option_list <- list(make_option(c("-p", "--port"), type = "integer", default = 8888))
 opt <- parse_args(OptionParser(option_list = option_list))
 
-upload_enabled = TRUE
 
 # Review of color palettes https://thenode.biologists.com/data-visualization-with-flying-colors/research/ and more examples of use see https://huygens.science.uva.nl/PlotTwist/
 # Color palettes Paul Tol: https://personal.sron.nl/~pault/
@@ -56,12 +55,15 @@ Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00",
 # Create a reactive object here that we can share between all the sessions.
 vals <- reactiveValues(count = 0)
 
-###### UI: User interface #########
+# include html file
+shiny::addResourcePath("about", "www")
+
+# UI: User interface ---------------------------
 
 ui <- navbarPage(
   "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
 
-   ### Panel A: Data upload and preparation
+# Panel A: Data upload and preparation ---------------------------
 
   tabPanel(
     "Data preparation",
@@ -88,12 +90,7 @@ ui <- navbarPage(
           checkboxInput("header_correlation", "File upload", TRUE),
         ),
 
-        # the data frame can be sub-sampled by selecting only every n-th row. 
-        checkboxInput("subsample_data", "Subsample data", FALSE),
-        conditionalPanel(
-          condition = "input.subsample_data == true",
-          numericInput("subsample_n", "Select every n-th row:", value = 1, min = 1, max = 50, step = 1)
-        ),
+        #radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
 
         #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
@@ -115,6 +112,13 @@ ui <- navbarPage(
           selectInput("sample_col", "Identifier of samples", choices = ""),
         ),
         
+        # the data frame can be sub-sampled by selecting only every n-th row. 
+        checkboxInput("subsample_data", "Subsample data", FALSE),
+        conditionalPanel(
+          condition = "input.subsample_data == true",
+          numericInput("subsample_n", "Select every n-th row:", value = 1, min = 1, max = 50, step = 1)
+        ),
+        
         downloadButton("downloadFilteredData", "Download filtered data")
       ),
 
@@ -127,8 +131,7 @@ ui <- navbarPage(
     )
   ),
 
-
-  ### Panel B: Plot data
+# Panel B: Plot data ---------------------------
 
   tabPanel(
     "Plot data",
@@ -139,16 +142,18 @@ ui <- navbarPage(
           choices = c("directional", "axial", "linear"),
           selected = "directional"
         ),
-        selectInput("stats_method", "Choose a stats test",
-          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test") #, "Watson's Test")
+        conditionalPanel(
+          condition = "input.stats_mode != 'linear'",
+          radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
         ),
+        #radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
         #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
         #),
         checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
         checkboxInput("scatter_plot", "Scatter plot", TRUE),
         checkboxInput("histogram_plot", "Histogram plot", TRUE),
-        checkboxInput("kde_plot", "KDE plot", FALSE),
+        #checkboxInput("kde_plot", "KDE plot", FALSE),
         conditionalPanel(
           condition = "input.histogram_plot == true",
           sliderInput("bins",
@@ -158,6 +163,9 @@ ui <- navbarPage(
             value = 12
           ),
           checkboxInput("area_scaled", "Area scaled histogram", TRUE),
+        ),
+        selectInput("stats_method", "Choose a stats test",
+          choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
         ),
         checkboxInput("ci_plot", "Confidence interval (CI)", TRUE),
         conditionalPanel(
@@ -170,12 +178,10 @@ ui <- navbarPage(
           )
         ),
         numericInput("cond_mean_direction",
-                      "Polar direction for V-test and V-score",
+                      "Polar direction for V-test and V-score (degrees)",
                       value = 0
                     ),
         checkboxInput("plot_polar_direction", "Plot polar vector and V-score", FALSE),
-
-
         conditionalPanel(
           condition = "input.stats_mode == 'axial'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
@@ -189,6 +195,7 @@ ui <- navbarPage(
           condition = "input.select_colormap != 'gray'",
           numericInput("select_color", "Select a color from color scheme:", value = 1, min = 1, max = 10, step = 1),
         ),
+        #checkboxInput("cond_as_color", "Condition as color", FALSE),
         checkboxInput("adjust_alpha", "Adjust transparency", FALSE),
         conditionalPanel(
           condition = "input.adjust_alpha == true",
@@ -230,7 +237,7 @@ ui <- navbarPage(
     )
   ),
 
-  ### Panel C: Correlation analysis
+  # Panel C: Correlation analysis ---------------------------
 
   tabPanel(
     "Correlation analysis",
@@ -241,10 +248,18 @@ ui <- navbarPage(
                     choices = c("directional", "axial", "linear"),
                     selected = "directional"
         ),
+        conditionalPanel(
+          condition = "input.stats_mode_1 != 'linear'",
+          radioButtons("circ_units_1", "Circular units (input 1):", choices = list("radians", "degrees"), selected = "radians"),
+        ),
         selectInput("feature_select_2", "Choose feature 2 (y-axis):", choices = ""),
         selectInput("stats_mode_2", "Data modality feature 2:",
                     choices = c("directional", "axial", "linear"),
                     selected = "directional"
+        ),
+        conditionalPanel(
+          condition = "input.stats_mode_2 != 'linear'",
+          radioButtons("circ_units_2", "Circular units (input 2):", choices = list("radians", "degrees"), selected = "radians"),
         ),
         selectInput("datasetSingleImage", "Download:",
           choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
@@ -293,7 +308,6 @@ ui <- navbarPage(
     )
   ),
 
-
   ### Panel D: Comparison statistics
 
   tabPanel(
@@ -336,12 +350,14 @@ ui <- navbarPage(
     )
   ),
   
-  ### Panel F: About
+  # Panel F: About the app ---------------------------
 
   tabPanel("About", 
-           includeHTML("About.html"),
+           #includeHTML("About.html"),
+           tags$iframe(src = "about/About.html", height = "300px", width = "100%", style = "border:0"),
            imageOutput("support_logo")
   )
+
 )
 
 
@@ -365,18 +381,17 @@ server <- function(input, output, session) {
 
       data_df <- read.csv("example_1/example_1.csv", header = TRUE)
 
-    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data") & upload_enabled) {
+    } else if (!is.null(inFileStackData) & (input$data_upload_form == "upload data")) {
 
       data_df <- read.csv(inFileStackData$datapath, header = input$header_correlation)
 
     } else {
 
-        data_df <- data.frame()
+      data_df <- data.frame()
 
     }
 
-    data_df <- na.omit(data_df)
-    data_df
+    return(data_df)
   })
 
   observe({
@@ -472,14 +487,12 @@ server <- function(input, output, session) {
       df_filtered <- df_filtered[df_filtered[input$filter_column] < input$max_value, ]
     }
     
-    df_filtered
+    return(df_filtered)
   })
   
   data_processed <- reactive({
     df_processed  <- NULL
     data <- data_filtered()
-    
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
     
     if (input$group_samples == TRUE) {
       
@@ -505,6 +518,12 @@ server <- function(input, output, session) {
             mean_list_1 = c()
             mean_list_2 = c()
             
+            #TODO: add support for axial and linear data
+            #TODO: supper selections of degrees or radians
+            x_data = circular_unit_conversion(unlist(df_single_cond[input$feature_select]),input,target = "radians")
+            x_data_1 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_1]),input,target = "radians")
+            x_data_2 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_2]),input,target = "radians")
+
             for(i in 1:num_samples) {       # for-loop over columns
               df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
               mean_list =  append(mean_list, compute_mean(unlist(df_sample[input$feature_select]),input$stats_mode))
@@ -531,7 +550,10 @@ server <- function(input, output, session) {
       df_processed <- data_filtered()
     }
     
-    df_processed 
+    df_processed <- df_processed[, colSums(is.na(df_processed)) != nrow(df_processed)]
+    df_processed <- na.omit(df_processed)
+
+    return(df_processed) 
   })
 
 
@@ -611,13 +633,21 @@ server <- function(input, output, session) {
 
     for (condition in condition_list) {
       condition_data <- data_df[data_df[condition_col] == condition,]
-      x_data <- unlist(condition_data[feature]) * 180.0 / pi
+      
+      #if (input$circ_units == "radians") {
+      #  x_data <- radians_to_degrees(unlist(condition_data[feature]))
+      #} else {
+      #  x_data <- unlist(condition_data[feature]) 
+      #}
+      
+      x_data <- circular_unit_conversion(unlist(condition_data[feature]), input, target = "degrees")
+
       statistics <- compute_statistics(condition_data, feature, parameters)
       t_statistics = t(statistics)
       statistics_df[,condition] <- t_statistics[,1]
     }
 
-    statistics_df
+    return(statistics_df)
   })
 
   output$summaryStatisticsTable <- renderTable(    {
@@ -630,13 +660,10 @@ server <- function(input, output, session) {
   )
 
   merged_plot <- reactive({
-    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
 
-    #results_all_df <- data_filtered()
     data <- data_processed()
     
     bin_size <- 360 / input$bins
@@ -646,21 +673,36 @@ server <- function(input, output, session) {
     if (feature %in% names(parameters)) {
       plot_title <- parameters[input$feature_select][[1]][3]
     }
-      #feature <- parameters[input$feature_select][[1]][1]
 
     if (input$stats_mode == "directional") {
 
-      x_data <- unlist(data[feature]) * 180.0 / pi
+      #if (input$circ_units == "radians") {
+      #  x_data <- radians_to_degrees(unlist(data[feature]))
+      #} else {
+      #  x_data <- unlist(data[feature])
+      #}
+
+      x_data <- circular_unit_conversion(unlist(data[feature]), input, target = "degrees")
+
+      #x_data <- unlist(data[feature]) * 180.0 / pi
       statistics <- compute_directional_statistics(data, feature, parameters)
 
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
 
     } else if (input$stats_mode == "axial") {
-
+      
       x_data <- data[feature]
+      # TODO: add support for radians/degrees in stats analyis
       statistics <- compute_axial_statistics(data, feature, parameters)
-      x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
+      #if (input$circ_units == "radians") {
+      #  x_data <- radians_to_degrees(unlist(transform_axial(input, x_data)))
+      #}
+      #else {
+      #  x_data <- unlist(transform_axial(input, x_data))
+      #}
+      x_data <- circular_unit_conversion(transform_axial(input, x_data), input, target = "degrees")
+      #x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
       p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, 0, text_size)
     } else {
@@ -670,7 +712,8 @@ server <- function(input, output, session) {
       p <- linear_histogram(parameters, input, statistics, x_data, plot_title, 0, text_size, min(x_data), max(x_data))
     }
 
-    p
+    # return the plot
+    return(p)
   })
 
   width_A <- reactive({
@@ -683,12 +726,9 @@ server <- function(input, output, session) {
   output$merged_plot <- renderPlot(width = width_A, height = height_A, {
     parameters <- fromJSON(file = "parameters/parameters.json")
 
-    #if (input$feature_select %in% names(parameters)) {
     p <- merged_plot()
-    p
-    #} else {
-    #
-    #}
+    return(p)
+ 
   })
 
   output$parameter_error <- renderText({
@@ -706,16 +746,12 @@ server <- function(input, output, session) {
     "
     function that plots data for every condition in the selected column of the data frame
     "
-
-    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- input$text_size
 
     i <- 1
-    angle_dists <- list()
-    file_names <- list()
+    #angle_dists <- list()
+    condition_names <- list()
     polarity_indices <- list()
     angle_mean_degs <- list()
 
@@ -733,45 +769,50 @@ server <- function(input, output, session) {
     x_lim <- c(min(results_all_df[feature]), max(results_all_df[feature]))
     
     for (condition in condition_list) {
-      #results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
+      #results_df <- subset(results_all_df, results_all_df[condition_col] == condition_name)
       results_df <- results_all_df[results_all_df[condition_col] == condition,]
-      x <- unlist(results_df[feature])
-      angle_dists[[i]] <- x
-      file_names[[i]] <- condition
+      #x <- unlist(results_df[feature])
+      #angle_dists[[i]] <- x
+      condition_names[[i]] <- condition
       i <- i + 1
     }
 
-    n <- length(angle_dists)
+    n <- length(condition_names)
     nCol <- floor(sqrt(n))
 
     bin_size <- 360 / input$bins
 
     plotseries <- function(i) {
-      angle_dist <- angle_dists[[i]]
-      file_name <- file_names[[i]]
+      #angle_dist <- angle_dists[[i]]
+      condition_name <- condition_names[[i]]
 
-
-      # results_df <- subset(results_all_df, results_all_df$filename == file_name)
-      #results_df <- subset(results_all_df, results_all_df[condition_col] == file_name)
-      results_df <- results_all_df[results_all_df[condition_col] == file_name,]
+      results_df <- results_all_df[results_all_df[condition_col] == condition_name,]
       
-      plot_title <- file_name
+      plot_title <- condition_name
 
-      if (nchar(file_name) > 37) {
+      if (nchar(condition_name) > 37) {
         max_fl <- 17
-        file_name_end <- substr(file_name, nchar(file_name) - max_fl + 1, nchar(file_name))
-        file_name_start <- substr(file_name, 1, max_fl)
-        plot_title <- paste0(file_name_start, "...", file_name_end)
+        condition_name_end <- substr(condition_name, nchar(condition_name) - max_fl + 1, nchar(condition_name))
+        condition_name_start <- substr(condition_name, 1, max_fl)
+        plot_title <- paste0(condition_name_start, "...", condition_name_end)
       }
 
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
-        x_data <- unlist(results_df[feature]) * 180.0 / pi
+        if (input$circ_units == "radians") {
+          x_data <- unlist(results_df[feature]) * 180.0 / pi
+        } else {
+          x_data <- unlist(results_df[feature])
+        }
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
         statistics <- compute_axial_statistics(results_df, feature, parameters)
-        x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
+        if (input$circ_units == "radians") {
+          x_data <- unlist(results_df[feature]) * 180.0 / pi
+        } else {
+          x_data <- unlist(results_df[feature])
+        }
         p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
@@ -781,9 +822,9 @@ server <- function(input, output, session) {
     }
 
 
-    myplots <- lapply(1:length(angle_dists), plotseries)
+    myplots <- lapply(1:length(condition_names), plotseries)
 
-    grid.arrange(grobs = myplots, nrow = nCol) 
+    return(grid.arrange(grobs = myplots, nrow = nCol)) 
   })
 
   output$multi_dist_plot <- renderPlot(width = width_A, height = height_A, {
@@ -854,8 +895,6 @@ server <- function(input, output, session) {
     },
     content <- function(file) {
       png(file, width = input$plot_width_A * 4, height = input$plot_height_A * 4, res = 300)
-      # if (input$data_form != "dataaspixel") plot(plot_data())
-      # else plot(plot_map())
       plot(merged_plot())
       dev.off()
     },
@@ -871,12 +910,8 @@ server <- function(input, output, session) {
     },
     content <- function(file) {
       pdf(file, width = input$plot_width_A / 72, height = input$plot_height_A / 72)
-      #plot(multi_plot(), bg = 'transparent')
       plot(multi_plot())
       dev.off()
-      #multi_plot()
-      #ggsave(file, width = input$plot_width_A / 72, height = input$plot_height_A / 72)
-      #unlink(file)
     },
     contentType = "application/pdf" # MIME type of the image
   )
@@ -911,8 +946,6 @@ server <- function(input, output, session) {
     },
     content <- function(file) {
       png(file, width = input$plot_width_A * 4, height = input$plot_height_A * 4, res = 300)
-      # if (input$data_form != "dataaspixel") plot(plot_data())
-      # else plot(plot_map())
       plot(multi_plot())
       dev.off()
     },
@@ -953,12 +986,8 @@ server <- function(input, output, session) {
   })
 
   plot_correlation <- reactive({
-    
-    
+        
     parameters <- fromJSON(file = "parameters/parameters.json")
-    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
     
     text_size <- input$text_size_corr
     correlation_data <- data_filtered()
@@ -968,22 +997,25 @@ server <- function(input, output, session) {
     
     
     feature_1_values <- unlist(correlation_data[feature_1])
-    feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    if (input$circ_units_1 == "radians") {
+      feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    } else {
+      feature_1_values_ <- correlation_data[feature_1]
+    }
+    #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
     feature_2_values <- unlist(correlation_data[feature_2])
-    feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
-
-    # feature_1_values_sin <- sin(unlist(correlation_data[feature_1]))
-    # feature_2_values_sin <- sin(unlist(correlation_data[feature_2]))
+    if (input$circ_units_2 == "radians") {
+      feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    } else {
+      feature_2_values_ <- correlation_data[feature_2]
+    }    
+    #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
 
     feature_1_name <- parameters[input$feature_select_1][[1]][3]
     feature_2_name <- parameters[input$feature_select_2][[1]][3]
 
     conditions <- correlation_data[input$condition_col]
-    
-    print("feature_values")
-
-    #if (parameters[input$feature_select_1][[1]][2] != "linear" && parameters[input$feature_select_2][[1]][2] != "linear") {
-      
+         
     p <- plot_circular_circular(correlation_data, input, parameters, plot_nr = 0, text_size = 24) 
       
  
@@ -993,10 +1025,6 @@ server <- function(input, output, session) {
   multi_corr_plot <- reactive({ 
     
     parameters <- fromJSON(file = "parameters/parameters.json")
-    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_correlations.R"), local = T)
-    
     text_size <- input$text_size_corr
     
     correlation_data <- data_filtered() # read.csv(inFileCorrelationData$datapath, header = input$header_correlation)
@@ -1006,9 +1034,20 @@ server <- function(input, output, session) {
     
     
     feature_1_values <- unlist(correlation_data[feature_1])
-    feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    if (input$circ_units_1 == "radians") {
+      feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    } else {
+      feature_1_values_ <- correlation_data[feature_1]
+    }
+    #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
     feature_2_values <- unlist(correlation_data[feature_2])
-    feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    if (input$circ_units_2 == "radians") {
+      feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    } else {
+      feature_2_values_ <- correlation_data[feature_2]
+    }
+    
+    #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
     
     feature_1_name <- parameters[input$feature_select_1][[1]][3]
     feature_2_name <- parameters[input$feature_select_2][[1]][3]
@@ -1399,6 +1438,7 @@ server <- function(input, output, session) {
     data <- data_filtered()
 
     # if (is.data.frame(data)) {
+    #TODO: check if condition_col and numeric columns are present in data
     if (length(colnames(data)) > 3) {
       print("Unique condition names: ")
       # print(data[condition_col])
@@ -1411,12 +1451,9 @@ server <- function(input, output, session) {
 
 
   comparison_plot <- reactive({
-    #source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-    #source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
     parameters <- fromJSON(file = "parameters/parameters.json")
     text_size <- 12
-
 
     datapath <- stack_data_info$datapath
     print(datapath)
@@ -1431,24 +1468,6 @@ server <- function(input, output, session) {
     angle_mean_degs <- list()
 
     results_all_df <- data_filtered()
-
-    #        for(row_nr in 1:nrow(results_all_df)) {
-    #            row <- results_all_df[row_nr,]
-    #      a <- row$major_axis_length
-    #      b <- row$minor_axis_length
-    #
-    #      eccentricity <- sqrt(1.0 - b*b/(a*a))
-    #      results_all_df[row_nr,"eccentricity"] = eccentricity
-    #    }
-
-    #    threshold <- input$min_eccentricity
-    #    if ("eccentricity" %in% colnames(results_all_df)){
-    #      results_all_df <- subset(results_all_df, results_all_df$eccentricity> threshold)
-    #    }
-    #    threshold <- input$min_nuclei_golgi_dist
-    #    if ("distance" %in% colnames(results_all_df)){
-    #      results_all_df <- subset(results_all_df, results_all_df$distance > threshold)
-    #    }
 
     # feature <- parameters[input$feature_select][[1]][1]
     feature <- parameters[input$feature_comparison][[1]][1]
@@ -1490,8 +1509,6 @@ server <- function(input, output, session) {
 
       file_names[[i]] <- file_name
 
-      # polarity_indices[[i]] <- polarity_index
-      # angle_mean_degs[[i]] <- angle_mean_deg
       i <- i + 1
     }
 
@@ -1528,20 +1545,28 @@ server <- function(input, output, session) {
       if (input$stats_mode == "directional") {
         statistics <- compute_directional_statistics(results_df, feature, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
-        x_data <- unlist(results_df[feature]) * 180.0 / pi
+        if (input$circ_units == "radians") {
+          x_data <- unlist(results_df[feature]) * 180.0 / pi
+        } else {
+          x_data <- unlist(results_df[feature])
+        }
+        #x_data <- unlist(results_df[feature]) * 180.0 / pi
+        
         print(paste0("Length of filename", toString(i)))
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
-        # print(x_data)
         statistics <- compute_axial_statistics(results_df, feature, parameters)
-        # if (input$left_directional) {
-        x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
-        # } else {
-        #  x_data <- unlist(results_df[feature])*180.0/pi
-        # }
-        # plot_title <- file_name
+
+        if (input$circ_units == "radians") {
+          x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
+        }
+        else {
+          x_data <- unlist(transform_axial(input, x_data))
+        }
+        
+
         p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else {
         x_data <- unlist(results_df[feature])
@@ -1711,28 +1736,20 @@ server <- function(input, output, session) {
 
   ### Panel D: Terms of Use ###
 
-  output$terms_of_use_text <- renderText({
-    "
-    function that the merged stack of polarity data and angles in table format
-    "
-
+  output$terms_of_use_text <- renderUI({
     if ((input$data_upload_form == "upload data") & (input$terms_of_use == FALSE)) {
-      if ( !upload_enabled ) {
-        HTML("Dear user, data upload is currently not possible in the online version. Please download the Rshiny app from <a href='https://polarityjam.readthedocs.io'>polaritjam</a>! on your computer and run this app locally. </p>")
-      } else {
-        includeHTML("Terms-of-Use.html")
-      }
-
+      tags$iframe(src = "about/Terms-of-Use.html", height = "500px", width = "100%")
     } else {
-
+      tags$div(style = "display:none")
     }
   })
 
-  output$terms_of_use_text_all <- renderText({
+  output$terms_of_use_text_all <- renderUI({
     "
     function that the merged stack of polarity data and angles in table format
     "
-    includeHTML("Terms-of-Use.html")
+    tags$iframe(src = "about/Terms-of-Use.html", height = "500px", width = "100%")
+    #includeHTML("Terms-of-Use.html")
   })
 
   ### Panel E: About ##
@@ -1741,15 +1758,14 @@ server <- function(input, output, session) {
   output$support_logo <- renderImage({
 
     filename <- normalizePath(file.path('collaboration_logo_small.png'))
-    print("logo file name")
-    print(filename)
 
     # Return a list containing the filename
     list(src = filename,
          #width = 608, height = 67,
-         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center"
+         alt = "supported by DZHK, Helmholtz Imaging, Leducq Foundation and Max Delbrück Center",
+         deleteFile = FALSE
          )
-  })
+  }, deleteFile = FALSE)
 }
 
 # Run the application

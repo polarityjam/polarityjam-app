@@ -30,8 +30,28 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-compute_mean <- function(data, stats_mode) {
+###############################################################
+## Modified April 4, 2024
 
+#' @description: This function converts circular data from radians to degree or vice versa
+#' @param data: list with circular data (radians or degree)
+#' @param input: shiny input object, user specification of input unit, takes values "degree" or "radians"
+#' @param target: target unit, takes values "degree" or "radians"
+#' @return: list with circular data in radians or degree
+circular_unit_conversion <- function(data, input, target = "degrees") {  
+  if ((target == "degrees") && (input$circ_units == "radians")) {
+    return(data * 180.0 / pi)
+  } else if ((target == "degrees") && (input$circ_units == "degrees")) {
+    return(data)
+  } else if ((target == "radians") && (input$circ_units == "radians")) {
+    return(data)
+  } else {
+    return(data * pi / 180.0)
+  }
+}
+
+#' @param data: list with circular data (radians)
+compute_mean <- function(data, stats_mode) {
   
   if (stats_mode == "linear") {
     return(mean(data))
@@ -77,6 +97,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
   "
 
   circular_data <- unlist(data[feature])
+  circular_data <- circular_unit_conversion(circular_data, input, "radians")
   sin_sum <- 0.0
   cos_sum <- 0.0
   polarity_index <- 0.0
@@ -124,7 +145,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
 
   rayleigh_test_res <- r.test(circular_data)
   # rayleigh_test_res <- r.test(results_df$angle_deg, degree = TRUE)
-  #watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
+  watson_res <- capture.output(watson.test(circular_data, alpha = 0, dist = "vonmises"))
   # v_test_res <- v0.test(circular_data, mu0 = pi)
   rao_res <- capture.output(rao.spacing.test(circular_data, alpha = 0))
 
@@ -153,6 +174,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
   ci_50_lower_limit <- transform_rad_degrees(ci_50_res$mu.ci[[1]], -pi, pi, 0.0, 360.0)
   ci_50_upper_limit <- transform_rad_degrees(ci_50_res$mu.ci[[2]], -pi, pi, 0.0, 360.0)
 
+  #values <- c(
   values <- data.frame(
     "number of cells" = nrow(data),
     "polarity_index" = polarity_index,
@@ -166,7 +188,7 @@ compute_directional_statistics <- function(data, feature, parameters) {
     "std_ang_low_lim" = std_ang_low_lim,
     "rayleigh_test" = rayleigh_test,
     "v_test" = v_test,
-    #"watson_test" = watson_res[5],
+    "watson_test" = watson_res[5],
     "rao_test" = rao_res[5],
     "ci_95_lower_limit" = ci_95_lower_limit,
     "ci_95_upper_limit" = ci_95_upper_limit,
@@ -212,6 +234,7 @@ compute_axial_statistics <- function(data, feature, parameters) {
 
   p_directional_data <- unlist(data[feature])
   circular_data <- unlist(data[feature])
+  circular_data <- circular_unit_conversion(circular_data, input, "radians")
 
   sin_sum <- 0.0
   cos_sum <- 0.0
