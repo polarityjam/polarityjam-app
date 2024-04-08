@@ -996,9 +996,19 @@ server <- function(input, output, session) {
     
     
     feature_1_values <- unlist(correlation_data[feature_1])
-    feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    if (input$circ_units_1 == "radians") {
+      feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    } else {
+      feature_1_values_ <- correlation_data[feature_1]
+    }
+    #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
     feature_2_values <- unlist(correlation_data[feature_2])
-    feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    if (input$circ_units_2 == "radians") {
+      feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    } else {
+      feature_2_values_ <- correlation_data[feature_2]
+    }    
+    #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
 
     feature_1_name <- parameters[input$feature_select_1][[1]][3]
     feature_2_name <- parameters[input$feature_select_2][[1]][3]
@@ -1023,9 +1033,20 @@ server <- function(input, output, session) {
     
     
     feature_1_values <- unlist(correlation_data[feature_1])
-    feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    if (input$circ_units_1 == "radians") {
+      feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    } else {
+      feature_1_values_ <- correlation_data[feature_1]
+    }
+    #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
     feature_2_values <- unlist(correlation_data[feature_2])
-    feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    if (input$circ_units_2 == "radians") {
+      feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    } else {
+      feature_2_values_ <- correlation_data[feature_2]
+    }
+    
+    #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
     
     feature_1_name <- parameters[input$feature_select_1][[1]][3]
     feature_2_name <- parameters[input$feature_select_2][[1]][3]
