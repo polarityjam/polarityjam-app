@@ -963,7 +963,11 @@ server <- function(input, output, session) {
     
     parameters <- fromJSON(file = "parameters/parameters.json")
     if (input$feature_select_1 %in% names(parameters)) {
-      stats_mode_1 <- parameters[input$feature_select_1][[1]][2]
+      stats_mode_1 <- "linear"
+      feature_1 <- input$feature_select_1
+      if (feature_1 %in% names(parameters)) {
+        stats_mode_1 <- parameters[feature_1][[1]][2]
+      }     
       updateSelectInput(session, "stats_mode_1", choices = c("directional", "axial", "linear"), selected = stats_mode_1)
     } else {
       updateSelectInput(session, "stats_mode_1", choices = c("directional", "axial", "linear"), selected = "linear")
@@ -978,7 +982,12 @@ server <- function(input, output, session) {
     
     parameters <- fromJSON(file = "parameters/parameters.json")
     if (input$feature_select_2 %in% names(parameters)) {
-      stats_mode_2 <- parameters[input$feature_select_2][[1]][2]
+      #stats_mode_2 <- parameters[input$feature_select_2][[1]][2]
+      stats_mode_2 <- "linear"
+      feature_2 <- input$feature_select_2
+      if (feature_2 %in% names(parameters)) {
+        stats_mode_2 <- parameters[feature_2][[1]][2]
+      }    
       updateSelectInput(session, "stats_mode_2", choices = c("directional", "axial", "linear"), selected = stats_mode_2)
     } else {
       updateSelectInput(session, "stats_mode_2", choices = c("directional", "axial", "linear"), selected = "linear")
@@ -1210,22 +1219,44 @@ server <- function(input, output, session) {
       }
     }
 
+    feature_1 <- input$feature_select_1
+    feature_1_name <- feature_1
+    if (feature_1 %in% names(parameters)) {
+      feature_1 <- parameters[feature_1][[1]][1]
+      feature_1_name <- parameters[input$feature_select_1][[1]][3]
+    }
+    feature_2 <- input$feature_select_2
+    feature_2_name <- feature_2
+    if(feature_2 %in% names(parameters)) {
+      feature_2 <- parameters[feature_2][[1]][1]
+      feature_2_name <- parameters[input$feature_select_2][[1]][3]
+    }
 
-    feature_1 <- parameters[input$feature_select_1][[1]][1]
-    feature_2 <- parameters[input$feature_select_2][[1]][1]
+    #feature_1 <- parameters[input$feature_select_1][[1]][1]
+    #feature_2 <- parameters[input$feature_select_2][[1]][1]
     feature_1_values <- unlist(correlation_data[feature_1])
     feature_2_values <- unlist(correlation_data[feature_2])
 
-    feature_1_name <- parameters[input$feature_select_1][[1]][3]
-    feature_2_name <- parameters[input$feature_select_2][[1]][3]
+
+    #feature_2_name <- parameters[input$feature_select_2][[1]][3]
 
     # res = circ.cor(feature_1_values, feature_2_values, test=TRUE)
 
     # reg_coeff <- res$r
     # p_value <- res$p.value
 
-    feature_1_values_deg <- unlist(correlation_data[feature_1]) * 180.0 / pi
-    feature_2_values_deg <- unlist(correlation_data[feature_2]) * 180.0 / pi
+    if (input$circ_units_1 == "radians") {
+      feature_1_values_deg <- unlist(correlation_data[feature_1]) * 180.0 / pi
+    } else {
+      feature_1_values_deg <- unlist(correlation_data[feature_1])
+    }
+    if (input$circ_units_2 == "radians") {
+      feature_2_values_deg <- unlist(correlation_data[feature_2]) * 180.0 / pi
+    } else {
+      feature_2_values_deg <- unlist(correlation_data[feature_2])
+    }
+    #feature_1_values_deg <- unlist(correlation_data[feature_1]) * 180.0 / pi
+    #feature_2_values_deg <- unlist(correlation_data[feature_2]) * 180.0 / pi
 
     feature_1_x_a <- list()
     feature_1_y_a <- list()
