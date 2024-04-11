@@ -21,3 +21,4 @@ dependencies:
   - r-readxl=1.3.1
   - r-jsonlite=1.7.2
   - r-rjson=0.2.20
+  - r-data.table=1.14.2
