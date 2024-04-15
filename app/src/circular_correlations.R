@@ -35,12 +35,11 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   
   source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
   
+  # TODO: consider the case that the feature is not in the parameters file
   feature_1 <- parameters[input$feature_select_1][[1]][1]
   feature_2 <- parameters[input$feature_select_2][[1]][1]
   feature_1_values <- unlist(correlation_data[feature_1])
-
   feature_2_values <- unlist(correlation_data[feature_2])
-
 
   feature_1_name <- parameters[input$feature_select_1][[1]][3]
   feature_2_name <- parameters[input$feature_select_2][[1]][3]
@@ -48,21 +47,24 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   mode_1 <- parameters[input$feature_select_1][[1]][2]
   mode_2 <- parameters[input$feature_select_2][[1]][2]
   
+
+  # TODO: use stats function to convert to degrees
   if (mode_1 != "linear") {
     feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
   } else {
     feature_1_values_ <- correlation_data[feature_1]
   }
   
+  #
   if (mode_2 != "linear") {
     feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
   } else {
     feature_2_values_ <- correlation_data[feature_2]
   }
   
+  #
   color <- select_color(parameters, input, plot_nr)
-  
-  
+    
   conditions <- correlation_data[input$condition_col]
   
   condition_list <- unlist(unique(correlation_data[input$condition_col]))
@@ -71,17 +73,11 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   for (i in 2:length(condition_list)) {
     color_palette <- append(color_palette, select_color(parameters, input, i))
   }
-  
-  print(color_palette)
 
   mean_dir_1 <- compute_mean_circular(feature_1_values, mode_1)
   mean_dir_2 <- compute_mean_circular(feature_2_values, mode_2)
 
   res <- compute_correlation(feature_1_values, mode_1, feature_2_values, mode_2)
-
-  print("Mean directions")
-  print(mean_dir_1)
-  print(mean_dir_2)
 
   # center correlation plot either to  either 0 or
   # otherwise pi/2 (90 degrees) or pi (180 degrees) 
@@ -129,12 +125,7 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
     }
   }
 
-  
-
   plot_df <- as.data.frame(c(feature_1_values_, feature_2_values_, conditions))
-
-  
-
 
   colnames(plot_df) <- c("x", "y", "condition")
   
@@ -190,7 +181,8 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   }
   
   p <- p + xlab(feature_1_name) + ylab(feature_2_name)
-  
+
+  return(p) 
   
 }
 

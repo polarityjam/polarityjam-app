@@ -1,5 +1,5 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Polarity JaM: Shiny app for plotting and comparing polarity data
+# Polarity-JaM: Shiny app for plotting and comparing polarity data
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Takes spreadsheet type data as input with circular and non-circular features
 # Visualization of circular and non-circular distributions
@@ -38,7 +38,6 @@ p_load(data.table,shiny,shinyFiles,shinycssloaders,circular,ggplot2,shinyWidgets
 option_list <- list(make_option(c("-p", "--port"), type = "integer", default = 8888))
 opt <- parse_args(OptionParser(option_list = option_list))
 
-
 # Review of color palettes https://thenode.biologists.com/data-visualization-with-flying-colors/research/ and more examples of use see https://huygens.science.uva.nl/PlotTwist/
 # Color palettes Paul Tol: https://personal.sron.nl/~pault/
 
@@ -61,7 +60,7 @@ shiny::addResourcePath("about", "www")
 # UI: User interface ---------------------------
 
 ui <- navbarPage(
-  "Polarity JaM - a web app for visualizing cell polarity, junction and morphology data",
+  "Polarity-JaM - a web app for visualizing cell polarity, junction and morphology data",
 
 # Panel A: Data upload and preparation ---------------------------
 
@@ -89,9 +88,6 @@ ui <- navbarPage(
           tags$hr(),
           checkboxInput("header_correlation", "File upload", TRUE),
         ),
-
-        #radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
-
         #TODO: add in future release, grouping of sample for instance by image/filename
         #selectInput("sample_col", "Identifier of samples", choices = ""),
         selectInput("condition_col", "Identifier of conditions", choices = ""),
@@ -132,11 +128,11 @@ ui <- navbarPage(
   ),
 
 # Panel B: Plot data ---------------------------
-
   tabPanel(
     "Plot data",
     sidebarLayout(
       sidebarPanel(
+        h4("Features"),
         selectInput("feature_select", "Choose a feature:", choices = ""),
         selectInput("stats_mode", "Choose data modality:",
           choices = c("directional", "axial", "linear"),
@@ -149,8 +145,7 @@ ui <- navbarPage(
         #radioButtons("circ_units", "Circular units (input):", choices = list("radians", "degrees"), selected = "radians"),
         #selectInput("plot_type", "Choose a plot type",
         #  choices = c("Boxplot", "Violin plot", "Scatter plot", "Histogram", "Density plot")
-        #),
-        checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
+        #),        
         checkboxInput("scatter_plot", "Scatter plot", TRUE),
         checkboxInput("histogram_plot", "Histogram plot", TRUE),
         #checkboxInput("kde_plot", "KDE plot", FALSE),
@@ -164,6 +159,8 @@ ui <- navbarPage(
           ),
           checkboxInput("area_scaled", "Area scaled histogram", TRUE),
         ),
+        h4("Statistics"),
+        checkboxInput("plot_PI", "Plot mean and polarity index", TRUE),
         selectInput("stats_method", "Choose a stats test",
           choices = c("None", "Rayleigh uniform", "V-Test", "Rao's Test", "Watson's Test")
         ),
@@ -201,15 +198,13 @@ ui <- navbarPage(
           condition = "input.adjust_alpha == true",
           numericInput("alpha_fill", "set alpha fill:", value = 0.5, min = 0.0, max = 1.0, step = 0.1),
           selectInput("outline", "choose outline style:", choice = c("color", "white", "black"))
-        ),
-        
+        ),        
         numericInput("text_size", "Text size", value = 12, min = 4, max = 50, step = 1),
         numericInput("marker_size", "Marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
         numericInput("plot_width_A", "Width (# pixels):", value = 1280),
         downloadButton("downloadData", "Download statistics")
       ),
-
       # Show a plot of the generated distribution
       mainPanel(
         tabsetPanel(
@@ -261,13 +256,24 @@ ui <- navbarPage(
           condition = "input.stats_mode_2 != 'linear'",
           radioButtons("circ_units_2", "Circular units (input 2):", choices = list("radians", "degrees"), selected = "radians"),
         ),
-        selectInput("datasetSingleImage", "Download:",
-          choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
+        checkboxInput(inputId = "change_scale",
+                                 label = "Change scale",
+                                 value = TRUE),
+        conditionalPanel(
+          condition = "input.change_scale == true",
+          numericInput("center_x", "x-axis center", value = "0")
         ),
+        conditionalPanel(
+          condition = "input.change_scale == true",
+          numericInput("center_y", "y-axis center", value = "0")
+        ),
+        #selectInput("datasetSingleImage", "Download:",
+        #  choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
+        #),
         # tags$hr(),
-        selectInput("corr_plot_option", "Choose a plot option:",
-          choices = c("correlation plot", "spoke plot")
-        ),
+        #selectInput("corr_plot_option", "Choose a plot option:",
+        #  choices = c("correlation plot", "spoke plot")
+        #),
         conditionalPanel(
           condition = "input.corr_plot_option == 'correlation plot'",
           checkboxInput("center_corr_plot", "center correlation plot", TRUE),
