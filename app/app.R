@@ -258,14 +258,14 @@ ui <- navbarPage(
         ),
         checkboxInput(inputId = "change_scale",
                                  label = "Change scale",
-                                 value = TRUE),
+                                 value = FALSE),
         conditionalPanel(
           condition = "input.change_scale == true",
-          numericInput("center_x", "x-axis center", value = "0")
+          numericInput("start_x", "x-axis start", value = 0)
         ),
         conditionalPanel(
           condition = "input.change_scale == true",
-          numericInput("center_y", "y-axis center", value = "0")
+          numericInput("start_y", "y-axis start", value = 0)
         ),
         #selectInput("datasetSingleImage", "Download:",
         #  choices = c("results_file", "statistics_file", "orientation_plot", "rose_histogram")
@@ -1007,29 +1007,29 @@ server <- function(input, output, session) {
     text_size <- input$text_size_corr
     correlation_data <- data_filtered()
 
-    feature_1 <- parameters[input$feature_select_1][[1]][1]
-    feature_2 <- parameters[input$feature_select_2][[1]][1]
+    # feature_1 <- parameters[input$feature_select_1][[1]][1]
+    # feature_2 <- parameters[input$feature_select_2][[1]][1]
     
     
-    feature_1_values <- unlist(correlation_data[feature_1])
-    if (input$circ_units_1 == "radians") {
-      feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
-    } else {
-      feature_1_values_ <- correlation_data[feature_1]
-    }
-    #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
-    feature_2_values <- unlist(correlation_data[feature_2])
-    if (input$circ_units_2 == "radians") {
-      feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
-    } else {
-      feature_2_values_ <- correlation_data[feature_2]
-    }    
-    #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    # feature_1_values <- unlist(correlation_data[feature_1])
+    # if (input$circ_units_1 == "radians") {
+    #   feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    # } else {
+    #   feature_1_values_ <- correlation_data[feature_1]
+    # }
+    # #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    # feature_2_values <- unlist(correlation_data[feature_2])
+    # if (input$circ_units_2 == "radians") {
+    #   feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    # } else {
+    #   feature_2_values_ <- correlation_data[feature_2]
+    # }    
+    # #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
 
-    feature_1_name <- parameters[input$feature_select_1][[1]][3]
-    feature_2_name <- parameters[input$feature_select_2][[1]][3]
+    # feature_1_name <- parameters[input$feature_select_1][[1]][3]
+    # feature_2_name <- parameters[input$feature_select_2][[1]][3]
 
-    conditions <- correlation_data[input$condition_col]
+    # conditions <- correlation_data[input$condition_col]
          
     p <- plot_circular_circular(correlation_data, input, parameters, plot_nr = 0, text_size = 24) 
       
@@ -1044,28 +1044,28 @@ server <- function(input, output, session) {
     
     correlation_data <- data_filtered() # read.csv(inFileCorrelationData$datapath, header = input$header_correlation)
     
-    feature_1 <- parameters[input$feature_select_1][[1]][1]
-    feature_2 <- parameters[input$feature_select_2][[1]][1]
+    # feature_1 <- parameters[input$feature_select_1][[1]][1]
+    # feature_2 <- parameters[input$feature_select_2][[1]][1]
     
     
-    feature_1_values <- unlist(correlation_data[feature_1])
-    if (input$circ_units_1 == "radians") {
-      feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
-    } else {
-      feature_1_values_ <- correlation_data[feature_1]
-    }
-    #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
-    feature_2_values <- unlist(correlation_data[feature_2])
-    if (input$circ_units_2 == "radians") {
-      feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
-    } else {
-      feature_2_values_ <- correlation_data[feature_2]
-    }
+    # feature_1_values <- unlist(correlation_data[feature_1])
+    # if (input$circ_units_1 == "radians") {
+    #   feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    # } else {
+    #   feature_1_values_ <- correlation_data[feature_1]
+    # }
+    # #feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+    # feature_2_values <- unlist(correlation_data[feature_2])
+    # if (input$circ_units_2 == "radians") {
+    #   feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    # } else {
+    #   feature_2_values_ <- correlation_data[feature_2]
+    # }
     
-    #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+    # #feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
     
-    feature_1_name <- parameters[input$feature_select_1][[1]][3]
-    feature_2_name <- parameters[input$feature_select_2][[1]][3]
+    # feature_1_name <- parameters[input$feature_select_1][[1]][3]
+    # feature_2_name <- parameters[input$feature_select_2][[1]][3]
     
     conditions <- correlation_data[input$condition_col]
     condition_list <- unlist(unique(correlation_data[input$condition_col]))

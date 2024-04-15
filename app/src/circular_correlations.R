@@ -33,35 +33,35 @@
 # rename to correlation
 plot_circular_circular <- function(correlation_data, input, parameters, plot_title, plot_nr = 0, text_size = 24) {
   
-  source(file = paste0(getwd(), "/src/plot_functions.R"), local = T)
-  
-  # TODO: consider the case that the feature is not in the parameters file
+  source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
+
+  # circular_unit_conversion <- function(data, input, target = "degrees")
+
+  # consider the case that the feature name is not the in parameters file
   feature_1 <- parameters[input$feature_select_1][[1]][1]
   feature_2 <- parameters[input$feature_select_2][[1]][1]
+    
+  mode_1 <- input$stats_mode_1
+  mode_2 <- input$stats_mode_2
+
+  # transform to degrees if necessary, i.e. the data is circular and provided in radians
+  feature_1_values_plot <- correlation_data[feature_1]
   feature_1_values <- unlist(correlation_data[feature_1])
+  if (mode_1 != "linear") {
+    feature_1_values_plot <- circular_unit_conversion(feature_1_values_plot, input, target = "degrees")
+    feature_1_values <- circular_unit_conversion(feature_1_values, input, target = "radians")
+  }
+  
+  feature_2_values_plot <- correlation_data[feature_2]
   feature_2_values <- unlist(correlation_data[feature_2])
+  if (mode_2 != "linear") {
+    feature_2_values_plot <- circular_unit_conversion(feature_2_values_plot, input, target = "degrees")
+    feature_2_values <- circular_unit_conversion(feature_2_values, input, target = "radians")
+  }
 
   feature_1_name <- parameters[input$feature_select_1][[1]][3]
   feature_2_name <- parameters[input$feature_select_2][[1]][3]
 
-  mode_1 <- parameters[input$feature_select_1][[1]][2]
-  mode_2 <- parameters[input$feature_select_2][[1]][2]
-  
-
-  # TODO: use stats function to convert to degrees
-  if (mode_1 != "linear") {
-    feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
-  } else {
-    feature_1_values_ <- correlation_data[feature_1]
-  }
-  
-  #
-  if (mode_2 != "linear") {
-    feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
-  } else {
-    feature_2_values_ <- correlation_data[feature_2]
-  }
-  
   #
   color <- select_color(parameters, input, plot_nr)
     
@@ -74,58 +74,105 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
     color_palette <- append(color_palette, select_color(parameters, input, i))
   }
 
-  mean_dir_1 <- compute_mean_circular(feature_1_values, mode_1)
-  mean_dir_2 <- compute_mean_circular(feature_2_values, mode_2)
+  #mean_dir_1 <- compute_mean_circular(feature_1_values, mode_1)
+  #mean_dir_2 <- compute_mean_circular(feature_2_values, mode_2)
 
   res <- compute_correlation(feature_1_values, mode_1, feature_2_values, mode_2)
 
   # center correlation plot either to  either 0 or
   # otherwise pi/2 (90 degrees) or pi (180 degrees) 
   # for axial or directional features, respectively
-  
-  if (input$center_corr_plot == TRUE) {
+
+
+
+  if (input$change_scale) {
+    #val <- feature_1_values_plot[i]
     if (mode_1 == "directional") {
-      if ((mean_dir_1 < pi / 2.0) | (mean_dir_1 > 3.0 * pi / 2.0)) {
-        for (i in 1:length(feature_2_values)) {
-          if (feature_1_values[i] > pi) {
-            correlation_data[i, feature_1] <- correlation_data[i, feature_1] - 2.0 * pi
-          }
+      for (i in 1:length(row(feature_1_values_plot))) {
+        if (feature_1_values_plot[i, feature_1] > 360.0 + input$start_x) {
+          feature_1_values_plot[i, feature_1] <- feature_1_values_plot[i, feature_1] - 360.0
         }
-        feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+        if (feature_1_values_plot[i, feature_1] < input$start_x) {
+          feature_1_values_plot[i,feature_1] <- feature_1_values_plot[i, feature_1] + 360.0
+        }
       }
     } else if (mode_1 == "axial") {
-      if ((mean_dir_1 < pi / 4.0) | (mean_dir_1 > 3.0 * pi / 4.0)) {
-        for (i in 1:length(feature_2_values)) {
-          if (feature_1_values[i] > pi / 2.0) {
-            correlation_data[i, feature_1] <- correlation_data[i, feature_1] - pi
-          }
+      for (i in 1:length(row(feature_1_values_plot))) {
+        if (feature_1_values_plot[i, feature_1] > 180.0 + input$start_x) {
+          feature_1_values_plot[i,feature_1] <- feature_1_values_plot[i, feature_1] - 180.0
         }
-        feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+        if (feature_1_values_plot[i, feature_1] < input$start_x) {
+          feature_1_values_plot[i,feature_1] <- feature_1_values_plot[i, feature_1] + 180.0
+        }
       }
     }
 
     if (mode_2 == "directional") {
-      if ((mean_dir_2 < pi / 2.0) | (mean_dir_2 > 3.0 * pi / 2.0)) {
-        for (i in 1:length(feature_2_values)) {
-          if (feature_2_values[i] > pi) {
-            correlation_data[i, feature_2] <- correlation_data[i, feature_2] - 2.0 * pi
-          }
+      for (i in 1:length(row(feature_2_values_plot))) {
+        if (feature_2_values_plot[i, feature_2] > 360.0 + input$start_y) {
+          feature_2_values_plot[i, feature_2] <- feature_2_values_plot[i, feature_2] - 360.0
         }
-        feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+        if (feature_2_values_plot[i, feature_2] < input$start_y) {
+          feature_2_values_plot[i,feature_2] <- feature_2_values_plot[i, feature_2] + 360.0
+        }
       }
     } else if (mode_2 == "axial") {
-      if ((mean_dir_2 < pi / 4.0) | (mean_dir_2 > 3.0 * pi / 4.0)) {
-        for (i in 1:length(feature_2_values)) {
-          if (feature_2_values[i] > pi / 2.0) {
-            correlation_data[i, feature_2] <- correlation_data[i, feature_2] - pi
-          }
+      for (i in 1:length(row(feature_2_values_plot))) {
+        if (feature_2_values_plot[i, feature_2] > 180.0 + input$start_y) {
+          feature_2_values_plot[i,feature_2] <- feature_2_values_plot[i, feature_2] - 180.0
         }
-        feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+        if (feature_2_values_plot[i, feature_2] < input$start_y) {
+          feature_2_values_plot[i,feature_2] <- feature_2_values_plot[i, feature_2] + 180.0
+        }
       }
     }
+
   }
 
-  plot_df <- as.data.frame(c(feature_1_values_, feature_2_values_, conditions))
+
+  # if (input$center_corr_plot == TRUE) {
+  #   if (mode_1 == "directional") {
+  #     if ((mean_dir_1 < pi / 2.0) | (mean_dir_1 > 3.0 * pi / 2.0)) {
+  #       for (i in 1:length(feature_2_values)) {
+  #         if (feature_1_values[i] > pi) {
+  #           correlation_data[i, feature_1] <- correlation_data[i, feature_1] - 2.0 * pi
+  #         }
+  #       }
+  #       feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+  #     }
+  #   } else if (mode_1 == "axial") {
+  #     if ((mean_dir_1 < pi / 4.0) | (mean_dir_1 > 3.0 * pi / 4.0)) {
+  #       for (i in 1:length(feature_2_values)) {
+  #         if (feature_1_values[i] > pi / 2.0) {
+  #           correlation_data[i, feature_1] <- correlation_data[i, feature_1] - pi
+  #         }
+  #       }
+  #       feature_1_values_ <- correlation_data[feature_1] * 180.0 / pi
+  #     }
+  #   }
+
+  #   if (mode_2 == "directional") {
+  #     if ((mean_dir_2 < pi / 2.0) | (mean_dir_2 > 3.0 * pi / 2.0)) {
+  #       for (i in 1:length(feature_2_values)) {
+  #         if (feature_2_values[i] > pi) {
+  #           correlation_data[i, feature_2] <- correlation_data[i, feature_2] - 2.0 * pi
+  #         }
+  #       }
+  #       feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+  #     }
+  #   } else if (mode_2 == "axial") {
+  #     if ((mean_dir_2 < pi / 4.0) | (mean_dir_2 > 3.0 * pi / 4.0)) {
+  #       for (i in 1:length(feature_2_values)) {
+  #         if (feature_2_values[i] > pi / 2.0) {
+  #           correlation_data[i, feature_2] <- correlation_data[i, feature_2] - pi
+  #         }
+  #       }
+  #       feature_2_values_ <- correlation_data[feature_2] * 180.0 / pi
+  #     }
+  #   }
+  # }
+
+  plot_df <- as.data.frame(c(feature_1_values_plot, feature_2_values_plot, conditions))
 
   colnames(plot_df) <- c("x", "y", "condition")
   
@@ -154,10 +201,10 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
       # theme_bw()
   }  
 
-  #if (mode_1 == 'directional') { p <- p + xlim(0,360) }
-  #if (mode_1 == 'axial') { p <- p + xlim(0,180) }
-  #if (mode_2 == 'directional') { p <- p + ylim(0,360) }
-  #if (mode_2 == 'axial') { p <- p + ylim(0,180) }
+  # if (mode_1 == 'directional') { p <- p + xlim(input$start_x,360 + input$start_x) }
+  # if (mode_1 == 'axial') { p <- p + xlim(input$start_x,180 + input$start_x) }
+  # if (mode_2 == 'directional') { p <- p + ylim(input$start_y,360 + input$start_y) }
+  # if (mode_2 == 'axial') { p <- p + ylim(input$start_y,180 + input$start_y) }
   
   p <- p + theme(aspect.ratio = 3 / 3)
   
@@ -258,8 +305,6 @@ compute_correlation <- function(feature_1_values, mode_1 = "directional", featur
     res <- cor(feature_1_values_, feature_2_values_, method = "pearson")
   }
   # res <- circ.cor(feature_1_values, feature_2_values, test = TRUE)
-
-
 
   return(res)
 }
