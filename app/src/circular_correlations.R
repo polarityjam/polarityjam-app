@@ -35,11 +35,23 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   
   source(file = paste0(getwd(), "/src/circular_statistics.R"), local = T)
 
-  # circular_unit_conversion <- function(data, input, target = "degrees")
+  feature_1 <- input$feature_select_1
+  feature_1_name <- feature_1
+  if (feature_1 %in% names(parameters)) {
+    feature_1 <- parameters[feature_1][[1]][1]
+    feature_1_name <- parameters[input$feature_select_1][[1]][3]
+  }
+  feature_2 <- input$feature_select_2
+  feature_2_name <- feature_2
+  if(feature_2 %in% names(parameters)) {
+    feature_2 <- parameters[feature_2][[1]][1]
+    feature_2_name <- parameters[input$feature_select_2][[1]][3]
+  }
+
 
   # consider the case that the feature name is not the in parameters file
-  feature_1 <- parameters[input$feature_select_1][[1]][1]
-  feature_2 <- parameters[input$feature_select_2][[1]][1]
+  #feature_1 <- parameters[input$feature_select_1][[1]][1]
+  #feature_2 <- parameters[input$feature_select_2][[1]][1]
     
   mode_1 <- input$stats_mode_1
   mode_2 <- input$stats_mode_2
@@ -58,9 +70,6 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
     feature_2_values_plot <- circular_unit_conversion(feature_2_values_plot, input, target = "degrees")
     feature_2_values <- circular_unit_conversion(feature_2_values, input, target = "radians")
   }
-
-  feature_1_name <- parameters[input$feature_select_1][[1]][3]
-  feature_2_name <- parameters[input$feature_select_2][[1]][3]
 
   #
   color <- select_color(parameters, input, plot_nr)
@@ -82,8 +91,6 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   # center correlation plot either to  either 0 or
   # otherwise pi/2 (90 degrees) or pi (180 degrees) 
   # for axial or directional features, respectively
-
-
 
   if (input$change_scale) {
     #val <- feature_1_values_plot[i]
@@ -205,6 +212,15 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   # if (mode_1 == 'axial') { p <- p + xlim(input$start_x,180 + input$start_x) }
   # if (mode_2 == 'directional') { p <- p + ylim(input$start_y,360 + input$start_y) }
   # if (mode_2 == 'axial') { p <- p + ylim(input$start_y,180 + input$start_y) }
+
+  if (mode_1 == 'directional') { p <- p + scale_x_continuous(limits = c(input$start_x,360 + input$start_x),
+                                                             breaks = seq(input$start_x, 360 + input$start_x, by = 45)) }
+  if (mode_1 == 'axial') { p <- p + scale_x_continuous(limits = c(input$start_x,180 + input$start_x),
+                                                      breaks = seq(input$start_x, 180 + input$start_x, by = 45)) }
+  if (mode_2 == 'directional') { p <- p + scale_y_continuous(limits = c(input$start_y,360 + input$start_y),
+                                                             breaks = seq(input$start_y, 360 + input$start_y, by = 45)) }
+  if (mode_2 == 'axial') { p <- p + scale_y_continuous(limits = c(input$start_y,180 + input$start_y),
+                                                      breaks = seq(input$start_y, 180 + input$start_y, by = 45)) }
   
   p <- p + theme(aspect.ratio = 3 / 3)
   
