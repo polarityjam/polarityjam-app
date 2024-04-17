@@ -23,6 +23,7 @@
     "nuc_major_to_minor_ratio": ["nuc_major_to_minor_ratio", "linear", "major to minor axis ratio"],
     "organelle_distance": ["organelle_distance", "linear", "mean intensity nucleus"],
     "organelle_orientation_rad": ["organelle_orientation_rad", "directional", "nuclei-golgi polarity"],
+    "n_organelle_orientation_rad": ["n_organelle_orientation_rad", "directional", "neighbour nuclei-golgi polarity"],
     "marker_mean_expression_nuc": ["marker_mean_expression_nuc", "linear", "mean intensity nucleus"],
     "marker_sum_expression_nuc": ["marker_sum_expression_nuc", "linear", "sum intensity nucleus"],
     "marker_nucleus_orientation_rad" : ["marker_nucleus_orientation_rad", "directional", "marker centroid to nucleus orientation"],
