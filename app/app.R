@@ -33,6 +33,7 @@ options(shiny.maxRequestSize = 100 * 1024^2) # upload size is limited to 100 MB
 
 if (!require("pacman")) install.packages ("pacman")
 require('pacman')
+
 p_load(data.table,shiny,shinyFiles,shinycssloaders,circular,ggplot2,shinyWidgets,tools,grid,gridExtra,tidyverse,CircStats,readxl,rjson,optparse, install=TRUE, update=FALSE)
 
 option_list <- list(make_option(c("-p", "--port"), type = "integer", default = 8888))
@@ -526,9 +527,9 @@ server <- function(input, output, session) {
             
             #TODO: add support for axial and linear data
             #TODO: supper selections of degrees or radians
-            x_data = circular_unit_conversion(unlist(df_single_cond[input$feature_select]),input,target = "radians")
-            x_data_1 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_1]),input,target = "radians")
-            x_data_2 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_2]),input,target = "radians")
+            x_data = circular_unit_conversion(unlist(df_single_cond[input$feature_select]),input$circ_units,target = "radians")
+            x_data_1 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_1]),input$circ_units,target = "radians")
+            x_data_2 = circular_unit_conversion(unlist(df_single_cond[input$feature_select_2]),input$circ_units,target = "radians")
 
             for(i in 1:num_samples) {       # for-loop over columns
               df_sample = subset(df_single_cond, df_single_cond[input$sample_col] == sample_identifier_list[i])
@@ -646,7 +647,7 @@ server <- function(input, output, session) {
       #  x_data <- unlist(condition_data[feature]) 
       #}
       
-      x_data <- circular_unit_conversion(unlist(condition_data[feature]), input, target = "degrees")
+      x_data <- circular_unit_conversion(unlist(condition_data[feature]), input$circ_units, target = "degrees")
 
       statistics <- compute_statistics(condition_data, feature, parameters)
       t_statistics = t(statistics)
@@ -688,7 +689,7 @@ server <- function(input, output, session) {
       #  x_data <- unlist(data[feature])
       #}
 
-      x_data <- circular_unit_conversion(unlist(data[feature]), input, target = "degrees")
+      x_data <- circular_unit_conversion(unlist(data[feature]), input$circ_units, target = "degrees")
 
       #x_data <- unlist(data[feature]) * 180.0 / pi
       statistics <- compute_directional_statistics(data, feature, parameters)
@@ -707,7 +708,8 @@ server <- function(input, output, session) {
       #else {
       #  x_data <- unlist(transform_axial(input, x_data))
       #}
-      x_data <- circular_unit_conversion(transform_axial(input, x_data), input, target = "degrees")
+      #x_data <- circular_unit_conversion(transform_axial(input, x_data), input$circ_units, target = "degrees")
+      x_data <- circular_unit_conversion(data, input$circ_units, target = "degrees")
       #x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
 
       p <- rose_plot_axial(parameters, input, statistics, x_data, plot_title, 0, text_size)
@@ -1593,9 +1595,10 @@ server <- function(input, output, session) {
 
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
-        x_data <- results_df[feature]
+        
         statistics <- compute_axial_statistics(results_df, feature, parameters)
 
+        x_data <- results_df[feature]
         if (input$circ_units == "radians") {
           x_data <- unlist(transform_axial(input, x_data)) * 180.0 / pi
         }
