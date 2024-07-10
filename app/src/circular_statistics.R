@@ -38,12 +38,12 @@
 #' @param input: shiny input object, user specification of input unit, takes values "degree" or "radians"
 #' @param target: target unit, takes values "degree" or "radians"
 #' @return: list with circular data in radians or degree
-circular_unit_conversion <- function(data, input, target = "degrees") {  
-  if ((target == "degrees") && (input$circ_units == "radians")) {
+circular_unit_conversion <- function(data, circ_units, target = "degrees") {  
+  if ((target == "degrees") && (circ_units == "radians")) {
     return(data * 180.0 / pi)
-  } else if ((target == "degrees") && (input$circ_units == "degrees")) {
+  } else if ((target == "degrees") && (circ_units == "degrees")) {
     return(data)
-  } else if ((target == "radians") && (input$circ_units == "radians")) {
+  } else if ((target == "radians") && (circ_units == "radians")) {
     return(data)
   } else {
     return(data * pi / 180.0)
@@ -81,23 +81,23 @@ compute_mean <- function(data, stats_mode) {
 compute_statistics <- function(data, feature, stats_mode, parameters) {
 
   if (input$stats_mode == "directional") {
-    statistics <- compute_directional_statistics(data, feature, parameters)
+    statistics <- compute_directional_statistics(data, feature, input, parameters)
   } else if (input$stats_mode == "axial") {
-    statistics <- compute_axial_statistics(data, feature, parameters)
+    statistics <- compute_axial_statistics(data, feature, input, parameters)
   } else {
-    statistics <- compute_linear_statistics(data, feature, parameters)
+    statistics <- compute_linear_statistics(data, feature, input, parameters)
   }
 
   return(statistics)
 }
 
-compute_directional_statistics <- function(data, feature, parameters) {
+compute_directional_statistics <- function(data, feature, input, parameters) {
   "
   Computes directional statistics for a given feature and returns a data frame with the results
   "
 
   circular_data <- unlist(data[feature])
-  circular_data <- circular_unit_conversion(circular_data, input, "radians")
+  circular_data <- circular_unit_conversion(circular_data, input$circ_units, "radians")
   sin_sum <- 0.0
   cos_sum <- 0.0
   polarity_index <- 0.0
@@ -213,12 +213,12 @@ transform_rad_degrees <- function(value, source_low, source_high, target_low, ta
   return(res)
 }
 
-comparison_circular_statistics <- function(data_1, data_2, feature, parameters) {
+comparison_circular_statistics <- function(data_1, data_2, feature, input, parameters) {
   circular_data_1 <- unlist(data_1[feature])
   circular_data_2 <- unlist(data_2[feature])
 
-  values_1 <- compute_directional_statistics(data_1, feature, parameters)
-  values_2 <- compute_directional_statistics(data_2, feature, parameters)
+  values_1 <- compute_directional_statistics(data_1, feature, input, parameters)
+  values_2 <- compute_directional_statistics(data_2, feature, input, parameters)
 
   # values <- data.frame( "polarity_index" = polarity_index,
   #                      "mean" = angle_mean_deg,
@@ -229,12 +229,11 @@ comparison_circular_statistics <- function(data_1, data_2, feature, parameters) 
 }
 
 
-compute_axial_statistics <- function(data, feature, parameters) {
+compute_axial_statistics <- function(data, feature, input, parameters) {
 
 
-  p_directional_data <- unlist(data[feature])
-  circular_data <- unlist(data[feature])
-  circular_data <- circular_unit_conversion(circular_data, input, "radians")
+  circular_data <- circular_unit_conversion(unlist(data[feature]), input$circ_units, "radians")
+  p_directional_data <- circular_unit_conversion(unlist(data[feature]), input$circ_units, "radians")
 
   sin_sum <- 0.0
   cos_sum <- 0.0
@@ -349,7 +348,7 @@ compute_axial_statistics <- function(data, feature, parameters) {
 }
 
 
-compute_linear_statistics <- function(data, feature, parameters) {
+compute_linear_statistics <- function(data, feature, input, parameters) {
   data_ <- unlist(data[feature])
 
   mean_ <- mean(data_)
