@@ -700,7 +700,7 @@ server <- function(input, output, session) {
       
       x_data <- data[feature]
       # TODO: add support for radians/degrees in stats analyis
-      statistics <- compute_axial_statistics(data, feature, parameters)
+      statistics <- compute_axial_statistics(data, feature, input, parameters)
 
       #if (input$circ_units == "radians") {
       #  x_data <- radians_to_degrees(unlist(transform_axial(input, x_data)))
@@ -815,7 +815,7 @@ server <- function(input, output, session) {
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         x_data <- results_df[feature]
-        statistics <- compute_axial_statistics(results_df, feature, parameters)
+        statistics <- compute_axial_statistics(results_df, feature, input, parameters)
         if (input$circ_units == "radians") {
           x_data <- unlist(results_df[feature]) * 180.0 / pi
         } else {
@@ -1596,7 +1596,7 @@ server <- function(input, output, session) {
         p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, i, text_size)
       } else if (input$stats_mode == "axial") {
         
-        statistics <- compute_axial_statistics(results_df, feature, parameters)
+        statistics <- compute_axial_statistics(results_df, feature, input, parameters)
 
         x_data <- results_df[feature]
         if (input$circ_units == "radians") {

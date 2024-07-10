@@ -83,7 +83,7 @@ compute_statistics <- function(data, feature, stats_mode, parameters) {
   if (input$stats_mode == "directional") {
     statistics <- compute_directional_statistics(data, feature, parameters)
   } else if (input$stats_mode == "axial") {
-    statistics <- compute_axial_statistics(data, feature, parameters)
+    statistics <- compute_axial_statistics(data, feature, input, parameters)
   } else {
     statistics <- compute_linear_statistics(data, feature, parameters)
   }
