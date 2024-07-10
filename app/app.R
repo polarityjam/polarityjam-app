@@ -692,7 +692,7 @@ server <- function(input, output, session) {
       x_data <- circular_unit_conversion(unlist(data[feature]), input$circ_units, target = "degrees")
 
       #x_data <- unlist(data[feature]) * 180.0 / pi
-      statistics <- compute_directional_statistics(data, feature, parameters)
+      statistics <- compute_directional_statistics(data, feature, input, parameters)
 
       p <- rose_plot_circular(parameters, input, statistics, x_data, plot_title, 0, text_size)
 
@@ -806,7 +806,7 @@ server <- function(input, output, session) {
       }
 
       if (input$stats_mode == "directional") {
-        statistics <- compute_directional_statistics(results_df, feature, parameters)
+        statistics <- compute_directional_statistics(results_df, feature, input, parameters)
         if (input$circ_units == "radians") {
           x_data <- unlist(results_df[feature]) * 180.0 / pi
         } else {
@@ -1582,7 +1582,7 @@ server <- function(input, output, session) {
 
 
       if (input$stats_mode == "directional") {
-        statistics <- compute_directional_statistics(results_df, feature, parameters)
+        statistics <- compute_directional_statistics(results_df, feature, input, parameters)
         # statistics <- compute_polarity_index(unlist(results_df[feature]))
         if (input$circ_units == "radians") {
           x_data <- unlist(results_df[feature]) * 180.0 / pi

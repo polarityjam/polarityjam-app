@@ -81,17 +81,17 @@ compute_mean <- function(data, stats_mode) {
 compute_statistics <- function(data, feature, stats_mode, parameters) {
 
   if (input$stats_mode == "directional") {
-    statistics <- compute_directional_statistics(data, feature, parameters)
+    statistics <- compute_directional_statistics(data, feature, input, parameters)
   } else if (input$stats_mode == "axial") {
     statistics <- compute_axial_statistics(data, feature, input, parameters)
   } else {
-    statistics <- compute_linear_statistics(data, feature, parameters)
+    statistics <- compute_linear_statistics(data, feature, input, parameters)
   }
 
   return(statistics)
 }
 
-compute_directional_statistics <- function(data, feature, parameters) {
+compute_directional_statistics <- function(data, feature, input, parameters) {
   "
   Computes directional statistics for a given feature and returns a data frame with the results
   "
@@ -213,12 +213,12 @@ transform_rad_degrees <- function(value, source_low, source_high, target_low, ta
   return(res)
 }
 
-comparison_circular_statistics <- function(data_1, data_2, feature, parameters) {
+comparison_circular_statistics <- function(data_1, data_2, feature, input, parameters) {
   circular_data_1 <- unlist(data_1[feature])
   circular_data_2 <- unlist(data_2[feature])
 
-  values_1 <- compute_directional_statistics(data_1, feature, parameters)
-  values_2 <- compute_directional_statistics(data_2, feature, parameters)
+  values_1 <- compute_directional_statistics(data_1, feature, input, parameters)
+  values_2 <- compute_directional_statistics(data_2, feature, input, parameters)
 
   # values <- data.frame( "polarity_index" = polarity_index,
   #                      "mean" = angle_mean_deg,
@@ -348,7 +348,7 @@ compute_axial_statistics <- function(data, feature, input, parameters) {
 }
 
 
-compute_linear_statistics <- function(data, feature, parameters) {
+compute_linear_statistics <- function(data, feature, input, parameters) {
   data_ <- unlist(data[feature])
 
   mean_ <- mean(data_)
