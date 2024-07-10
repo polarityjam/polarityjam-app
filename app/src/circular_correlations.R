@@ -60,15 +60,15 @@ plot_circular_circular <- function(correlation_data, input, parameters, plot_tit
   feature_1_values_plot <- correlation_data[feature_1]
   feature_1_values <- unlist(correlation_data[feature_1])
   if (mode_1 != "linear") {
-    feature_1_values_plot <- circular_unit_conversion(feature_1_values_plot, input, target = "degrees")
-    feature_1_values <- circular_unit_conversion(feature_1_values, input, target = "radians")
+    feature_1_values_plot <- circular_unit_conversion(feature_1_values_plot, input$circ_units, target = "degrees")
+    feature_1_values <- circular_unit_conversion(feature_1_values, input$circ_units, target = "radians")
   }
   
   feature_2_values_plot <- correlation_data[feature_2]
   feature_2_values <- unlist(correlation_data[feature_2])
   if (mode_2 != "linear") {
-    feature_2_values_plot <- circular_unit_conversion(feature_2_values_plot, input, target = "degrees")
-    feature_2_values <- circular_unit_conversion(feature_2_values, input, target = "radians")
+    feature_2_values_plot <- circular_unit_conversion(feature_2_values_plot, input$circ_units, target = "degrees")
+    feature_2_values <- circular_unit_conversion(feature_2_values, input$circ_units, target = "radians")
   }
 
   #
