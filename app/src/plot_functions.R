@@ -315,7 +315,7 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     feature_circular_ <- numeric(2 * n)
     for (i in 1:n) {
       feature_circular_[i] <- feature_circular[i]
-      feature_circular_[i + n] <- feature_circular[i] + 180.0
+      feature_circular_[i + n] <- feature_circular[i] - 180.0
     }
   }
 
@@ -343,7 +343,8 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
   if (input$histogram_plot) {
     p <- p +
       geom_histogram(aes(x = feature_circular_, y = ..ncount..),
-                     breaks = seq(0, 360, bin_size),
+                     #breaks = seq(0, 360, bin_size),  # TODO adapt
+                     breaks = seq(-180, 180, bin_size),  # TODO adapt
                      color = color,
                      fill = color_fill,
                      alpha = alpha
@@ -359,10 +360,13 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     ggtitle(plot_title) +
     theme(plot.title = element_text(size = 10, face = "bold")) +
     theme(axis.text.x = element_text(size = 18)) +
-    coord_polar(start = -pi / 2.0, direction = -1) +
+    #coord_polar(start = -pi / 2.0, direction = -1) +
+    coord_polar(start = pi / 2.0, direction = -1) +
     scale_x_continuous(
-      limits = c(0, 360),
-      breaks = (c(0, 90, 180, 270))
+      # limits = c(0, 360), # TODO Adapt
+      # breaks = (c(0, 90, 180, 270)) # TODO Adapt
+      limits = c(-180, 180), # TODO Adapt
+      breaks = (c(0, 90, 180, -90)) # TODO Adapt
     ) +
     theme_minimal(base_size = text_size) +
     #        xlab(sprintf("number of cells = : %s \n polarity index: %s, %s, \n condition: %s" , length(feature_circular), polarity_index, p_value, input$exp_condition)) +
