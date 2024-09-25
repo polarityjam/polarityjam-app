@@ -366,7 +366,7 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
       # limits = c(0, 360), # TODO Adapt
       # breaks = (c(0, 90, 180, 270)) # TODO Adapt
       limits = c(-180, 180), # TODO Adapt
-      breaks = (c(0, 90, 180, -90)) # TODO Adapt
+      breaks = (c(0, 45, 90, 135, 180, -45, -90, -135)) # TODO Adapt
     ) +
     theme_minimal(base_size = text_size) +
     #        xlab(sprintf("number of cells = : %s \n polarity index: %s, %s, \n condition: %s" , length(feature_circular), polarity_index, p_value, input$exp_condition)) +
@@ -451,18 +451,18 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
 
 
   if (input$hemi_rose_options == "mirrored") {
-    statistics[1, "mean"] <- statistics[1, "mean"] + 180.0
-    statistics[1, "mu0"] <- statistics[1, "mu0"] + 180.0
-    statistics[1, "ci_95_lower_limit"] <- statistics[1, "ci_95_lower_limit"] + 180.0
-    statistics[1, "ci_95_upper_limit"] <- statistics[1, "ci_95_upper_limit"] + 180.0
-    statistics[1, "ci_90_lower_limit"] <- statistics[1, "ci_90_lower_limit"] + 180.0
-    statistics[1, "ci_90_upper_limit"] <- statistics[1, "ci_90_upper_limit"] + 180.0
-    statistics[1, "ci_50_lower_limit"] <- statistics[1, "ci_50_lower_limit"] + 180.0
-    statistics[1, "ci_50_upper_limit"] <- statistics[1, "ci_50_upper_limit"] + 180.0
-    statistics[1, "std_circ_low_lim"] <- statistics[1, "std_circ_low_lim"] + 180.0
-    statistics[1, "std_circ_up_lim"] <- statistics[1, "std_circ_up_lim"] + 180.0
-    statistics[1, "std_ang_low_lim"] <- statistics[1, "std_ang_low_lim"] + 180.0
-    statistics[1, "std_ang_up_lim"] <- statistics[1, "std_ang_up_lim"] + 180.0
+    statistics[1, "mean"] <- statistics[1, "mean"] - 180.0
+    statistics[1, "mu0"] <- statistics[1, "mu0"] - 180.0
+    statistics[1, "ci_95_lower_limit"] <- statistics[1, "ci_95_lower_limit"] - 180.0
+    statistics[1, "ci_95_upper_limit"] <- statistics[1, "ci_95_upper_limit"] - 180.0
+    statistics[1, "ci_90_lower_limit"] <- statistics[1, "ci_90_lower_limit"] - 180.0
+    statistics[1, "ci_90_upper_limit"] <- statistics[1, "ci_90_upper_limit"] - 180.0
+    statistics[1, "ci_50_lower_limit"] <- statistics[1, "ci_50_lower_limit"] - 180.0
+    statistics[1, "ci_50_upper_limit"] <- statistics[1, "ci_50_upper_limit"] - 180.0
+    statistics[1, "std_circ_low_lim"] <- statistics[1, "std_circ_low_lim"] - 180.0
+    statistics[1, "std_circ_up_lim"] <- statistics[1, "std_circ_up_lim"] - 180.0
+    statistics[1, "std_ang_low_lim"] <- statistics[1, "std_ang_low_lim"] - 180.0
+    statistics[1, "std_ang_up_lim"] <- statistics[1, "std_ang_up_lim"] - 180.0
 
     if (input$plot_polar_direction) {
       #mu0 <- input$cond_mean_direction + 180
