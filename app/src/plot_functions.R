@@ -308,26 +308,30 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
     p_value <- paste0("p = ", toString(p_value_))
   }
 
-  if (input$hemi_rose_options != "mirrored") {
-    feature_circular_ <- feature_circular
-  } else {
-    n <- length(feature_circular)
-    feature_circular_ <- numeric(2 * n)
-    for (i in 1:n) {
-      feature_circular_[i] <- feature_circular[i]
-      feature_circular_[i + n] <- feature_circular[i] - 180.0
-    }
-  }
+  feature_circular_ <- feature_circular
+  #if (input$hemi_rose_options != "mirrored") {
+  #  feature_circular_ <- feature_circular
+  #} else {
+  #  n <- length(feature_circular)
+  #  feature_circular_ <- numeric(2 * n)
+  #  for (i in 1:n) {
+  #    feature_circular_[i] <- feature_circular[i]
+  #    feature_circular_[i + n] <- feature_circular[i] - 180.0
+  #  }
+  #}
 
   color_fill <- select_color(parameters, input, plot_nr)
   color <- color_fill
   alpha <- 0.5
+  alpha_mirrored <- 0.1
   if (input$adjust_alpha == TRUE) {
     alpha <- input$alpha_fill
+    alpha_mirrored <-  input$alpha_fill_mirrored
     if (input$outline != "color") {
       color <- input$outline
     }
   }
+  
 
   p <- ggplot()
 
@@ -351,9 +355,38 @@ rose_plot_axial <- function(parameters, input, statistics, feature_circular, plo
       )
   }
 
+  if (input$hemi_rose_options == "mirrored") {
+    n <- length(feature_circular)
+    feature_circular_mirrored <- numeric(n)
+    for (i in 1:n) {
+      feature_circular_mirrored[i] <- feature_circular[i] - 180.0
+    }
+  }
+
+  
+  if (input$hemi_rose_options == "mirrored") {
+    if (input$histogram_plot) {
+      p <- p +
+        geom_histogram(aes(x = feature_circular_mirrored, y = ..ncount..),
+                      #breaks = seq(0, 360, bin_size),  # TODO adapt
+                      breaks = seq(-180, 180, bin_size),  # TODO adapt
+                      color = color,
+                      fill = color_fill,
+                      alpha = alpha_mirrored
+        )
+    }
+  }
+
+
   if (input$scatter_plot) {
     print("plot points")
     p <- p + geom_point(aes(x = feature_circular_, y = 1), size = input$marker_size, alpha = 0.5)
+  }
+
+  if (input$hemi_rose_options == "mirrored") {
+    if (input$scatter_plot) {
+      p <- p + geom_point(aes(x = feature_circular_mirrored, y = 1), size = input$marker_size, alpha = alpha_mirrored)
+    }
   }
   
   p <- p + ggtitle(plot_title) +

@@ -184,7 +184,8 @@ ui <- navbarPage(
         conditionalPanel(
           condition = "input.stats_mode == 'axial'",
           selectInput("hemi_rose_options", "Hemirose plot options:",
-            choices = c("mirrored", "up", "down", "left", "right")
+            #choices = c("mirrored", "up", "down", "left", "right")
+            choices = c("mirrored", "raw") #, "down", "left", "right")
           )
         ),
         selectInput("select_colormap", "Choose a color scheme",
@@ -199,8 +200,13 @@ ui <- navbarPage(
         conditionalPanel(
           condition = "input.adjust_alpha == true",
           numericInput("alpha_fill", "set alpha fill:", value = 0.5, min = 0.0, max = 1.0, step = 0.1),
+          conditionalPanel(
+            condition = "input.stats_mode == 'axial'",
+            numericInput("alpha_fill_mirrored", "set alpha fill (mirrored):", value = 0.25, min = 0.0, max = 1.0, step = 0.1)
+          ),     
           selectInput("outline", "choose outline style:", choice = c("color", "white", "black"))
-        ),        
+        ),  
+        
         numericInput("text_size", "Text size", value = 12, min = 4, max = 50, step = 1),
         numericInput("marker_size", "Marker size", value = 3, min = 1, max = 20, step = 1),
         numericInput("plot_height_A", "Height (# pixels): ", value = 720),
